@@ -1,0 +1,10 @@
+plugins {
+    id 'watchdog.library-conventions'
+}
+
+group 'de.pollmann.Watchdog'
+version '0.0.1'
+
+dependencies {
+
+}
