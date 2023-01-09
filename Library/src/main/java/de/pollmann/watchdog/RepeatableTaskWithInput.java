@@ -1,8 +1,8 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.*;
+import de.pollmann.watchdog.tasks.WatchableConsumer;
+import de.pollmann.watchdog.tasks.WatchableFunction;
 
-import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.concurrent.Future;
 

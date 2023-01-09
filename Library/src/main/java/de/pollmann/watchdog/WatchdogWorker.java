@@ -3,7 +3,10 @@ package de.pollmann.watchdog;
 import de.pollmann.watchdog.tasks.Watchable;
 
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 class WatchdogWorker {
@@ -26,7 +29,12 @@ class WatchdogWorker {
     TaskResult<OUT> taskResult;
     try {
       Future<OUT> future = workerPool.submit(watchable);
-      OUT result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+      OUT result;
+      if (timeoutInMilliseconds != 0) {
+        result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+      } else {
+        result = future.get();
+      }
       // !future.isDone() cannot happen!
       taskResult = TaskResult.createOK(result);
     } catch (TimeoutException timeoutException) {
