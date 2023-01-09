@@ -1,0 +1,40 @@
+= Java (repeated) function call support
+
+Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
+
+* `ResultCode.OK` The execution is completed without exception & the result can be obtained with `TaskResult#getResult`
+* `ResultCode.TIMEOUT` The function call was *NOT* completed, the task was canceled
+* `ResultCode.ERROR` An unexpected exception occurred. The exception can be obtained with `TaskResult#getErrorReason`
+
+== Quick start
+This library supports `Runnable`, `Callable`, `Consumer` and `Function`
+
+=== How to
+TODO publishing
+
+=== Setup
+1. Import the `Library` in your project
+2. Create & store a `WatchdogFactory`. Each factory stores two `ExecutorServices`
+3. create an asynchronous function call with `WatchdogFactory#submitFunctionCall`, a synchronized function call using `WatchdogFactory#waitForCompletion` or create a `RepeatableTask` with `WatchdogFactory#createRepeated`
+
+=== Important
+* As soon as the internal worker of the `WatchdogFactory` gets garbage collected, `ExecutorServices#shutdown` is called for every `ExecutorServices` (finalize)
+** a `RepeatableTask` has a reference to the internal worker
+** to terminate the RepeatableTask call `RepeatableTask#terminate`
+** a terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
+* The timeout is specified in milliseconds
+** a timeout of 0 ms will be handled as `no timeout`
+
+== Example
+Just implement `loop` +
+Remark: A timeout of 0 ms will be handled as `no timeout`
+[source, java]
+----
+include::Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java[]
+----
+
+Possible `AppContext` with a separated `WachdogFactory` for the whole application (not required).
+[source, java]
+----
+include::Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java[]
+----
