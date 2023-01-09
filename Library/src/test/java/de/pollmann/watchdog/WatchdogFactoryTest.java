@@ -1,5 +1,6 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.WatchableRunnable;
 import de.pollmann.watchdog.testsupport.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -224,6 +225,39 @@ class WatchdogFactoryTest {
     });
 
     assertErrorWithTestException(callable.getLastResult());
+  }
+
+  @Test
+  void runnable_userTriesEverythingToSabotageTheTimeout_TIMEOUT() {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, new Sabotage());
+
+    assertTimeout(result);
+  }
+
+  private static class Sabotage implements WatchableRunnable {
+    @Override
+    public void run() {
+      try {
+        int i = 1;
+        while (i > 0) {
+          i++;
+          if (i >= 100) {
+            i = 1;
+          }
+        }
+      } catch (Throwable throwable) {
+        run();
+      }
+    }
+
+    @Override
+    public Object call() throws Exception {
+      try {
+        return WatchableRunnable.super.call();
+      } catch (Throwable throwable) {
+        return call();
+      }
+    }
   }
 
   private void assertTimeout(TaskResult<?> result) {

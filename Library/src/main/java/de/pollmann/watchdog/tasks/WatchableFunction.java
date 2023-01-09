@@ -2,7 +2,6 @@ package de.pollmann.watchdog.tasks;
 
 import de.pollmann.watchdog.TaskResult;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -10,12 +9,13 @@ public class WatchableFunction<IN, OUT> implements Watchable<OUT> {
 
   protected final IN input;
   protected final Function<IN,OUT> function;
-  protected final Consumer<TaskResult<OUT>> resultConsumer;
+
+  private Consumer<TaskResult<OUT>> resultConsumer;
 
   public WatchableFunction(Consumer<TaskResult<OUT>> resultConsumer, Function<IN, OUT> function, IN input) {
-    this.resultConsumer = resultConsumer;
     this.function = function;
     this.input = input;
+    setResultConsumer(resultConsumer);
   }
 
   public WatchableFunction(Function<IN, OUT> function, IN input) {
@@ -25,6 +25,10 @@ public class WatchableFunction<IN, OUT> implements Watchable<OUT> {
   @Override
   public OUT call() throws Exception {
     return apply(input);
+  }
+
+  public void setResultConsumer(Consumer<TaskResult<OUT>> resultConsumer) {
+    this.resultConsumer = resultConsumer;
   }
 
   @Override
@@ -37,7 +41,7 @@ public class WatchableFunction<IN, OUT> implements Watchable<OUT> {
   }
 
   public WatchableFunction<IN, OUT> clone(IN newInput) {
-    return new WatchableFunction<>(getResultConsumer(), function, newInput);
+    return new WatchableFunction<>(resultConsumer, function, newInput);
   }
 
   protected static void emptyResultConsumer(TaskResult<?> result) {

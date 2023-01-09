@@ -33,14 +33,18 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
   }
 
   @Override
-  public Consumer<TaskResult<Integer>> getResultConsumer() {
-    return this::internResultConsumer;
+  public void setResultConsumer(Consumer<TaskResult<Integer>> resultConsumer) {
+    if (resultConsumer == null) {
+      super.setResultConsumer(this::internResultConsumer);
+    } else {
+      super.setResultConsumer(result -> {
+        resultConsumer.accept(result);
+        internResultConsumer(result);
+      });
+    }
   }
 
   private void internResultConsumer(TaskResult<Integer> result) {
-    if (super.getResultConsumer() != null) {
-      super.getResultConsumer().accept(result);
-    }
     lastResult = result;
     finishedCounter++;
   }

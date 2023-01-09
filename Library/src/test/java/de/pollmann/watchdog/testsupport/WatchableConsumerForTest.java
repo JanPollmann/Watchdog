@@ -32,14 +32,18 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
   }
 
   @Override
-  public Consumer<TaskResult<Object>> getResultConsumer() {
-    return this::internResultConsumer;
+  public void setResultConsumer(Consumer<TaskResult<Object>> resultConsumer) {
+    if (resultConsumer == null) {
+      super.setResultConsumer(this::internResultConsumer);
+    } else {
+      super.setResultConsumer(result -> {
+        resultConsumer.accept(result);
+        internResultConsumer(result);
+      });
+    }
   }
 
   private void internResultConsumer(TaskResult<Object> result) {
-    if (super.getResultConsumer() != null) {
-      super.getResultConsumer().accept(result);
-    }
     lastResult = result;
     finishedCounter++;
   }

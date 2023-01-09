@@ -27,11 +27,8 @@ class WatchdogWorker {
     try {
       Future<OUT> future = workerPool.submit(watchable);
       OUT result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
-      if (future.isDone()){
-        taskResult = TaskResult.createOK(result);
-      } else {
-        taskResult = unfinishedFuture(future);
-      }
+      // !future.isDone() cannot happen!
+      taskResult = TaskResult.createOK(result);
     } catch (TimeoutException timeoutException) {
       taskResult = TaskResult.createTimeout(timeoutException);
     } catch (Throwable throwable) {
@@ -44,6 +41,10 @@ class WatchdogWorker {
     return taskResult;
   }
 
+  public boolean isTerminated() {
+    return isTerminated(workerPool) || isTerminated(watchdogPool);
+  }
+
   @Override
   protected void finalize() throws Throwable {
     super.finalize();
@@ -51,11 +52,8 @@ class WatchdogWorker {
     workerPool.shutdown();
   }
 
-  private <OUT> TaskResult<OUT> unfinishedFuture(Future<OUT> future) {
-    if (!future.isCancelled()) {
-      future.cancel(true);
-    }
-    return TaskResult.createError(new UnfinishedFutureException(future));
+  private static boolean isTerminated(ExecutorService executorService) {
+    return executorService.isTerminated() || executorService.isShutdown();
   }
 
 }

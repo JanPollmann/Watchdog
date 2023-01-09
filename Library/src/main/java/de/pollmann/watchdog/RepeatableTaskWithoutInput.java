@@ -7,14 +7,13 @@ import de.pollmann.watchdog.tasks.WatchableRunnable;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
-public class RepeatableTaskWithoutInput<OUT> {
+public class RepeatableTaskWithoutInput<OUT> extends RepeatableTask {
 
   private final Watchable<OUT> repeated;
-  private final WatchdogWorker worker;
   private final long timeoutInMilliseconds;
 
   private RepeatableTaskWithoutInput(WatchdogWorker worker, long timeoutInMilliseconds, Watchable<OUT> repeated) {
-    this.worker = Objects.requireNonNull(worker);
+    super(worker);
     this.repeated = Objects.requireNonNull(repeated);
     this.timeoutInMilliseconds = timeoutInMilliseconds;
   }
@@ -28,10 +27,10 @@ public class RepeatableTaskWithoutInput<OUT> {
   }
 
   public Future<?> submitFunctionCall() {
-    return worker.submitFunctionCall(timeoutInMilliseconds, repeated);
+    return getWorkerIfAvailable().submitFunctionCall(timeoutInMilliseconds, repeated);
   }
 
   public TaskResult<OUT> waitForCompletion() {
-    return worker.waitForCompletion(timeoutInMilliseconds, repeated);
+    return getWorkerIfAvailable().waitForCompletion(timeoutInMilliseconds, repeated);
   }
 }
