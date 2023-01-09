@@ -1,9 +1,8 @@
 package de.pollmann.watchdog.tasks;
 
-import de.pollmann.watchdog.TaskResult;
-
-public interface WatchableRunnable extends InterruptableRunnable, WatchableCallable<Object> {
-  void finishedWithResult(TaskResult<Object> result);
+@FunctionalInterface
+public interface WatchableRunnable extends Watchable<Object> {
+  void run() throws Exception;
 
   @Override
   default Object call() throws Exception {

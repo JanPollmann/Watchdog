@@ -1,6 +1,7 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.InterruptableRunnable;
+import de.pollmann.watchdog.tasks.WatchableCallable;
+import de.pollmann.watchdog.tasks.WatchableRunnable;
 import de.pollmann.watchdog.testsupport.WatchableCallableForTest;
 import de.pollmann.watchdog.testsupport.WatchableRunnableForTest;
 import org.junit.jupiter.api.Assertions;
@@ -69,7 +70,7 @@ public class WatchdogFactoryWithExecutorServiceTest {
   @Timeout(4)
   void runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    InterruptableRunnable runnable = () -> {
+    WatchableRunnable runnable = () -> {
       while (true) {
         // well ...
       }
@@ -96,7 +97,7 @@ public class WatchdogFactoryWithExecutorServiceTest {
   @Timeout(4)
   void nonBlocking_runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    InterruptableRunnable runnable = () -> {
+    WatchableRunnable runnable = () -> {
       while (true) {
         // well ...
       }
@@ -123,7 +124,7 @@ public class WatchdogFactoryWithExecutorServiceTest {
   @Timeout(4)
   void callable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    Callable<?> callable = () -> {
+    WatchableCallable<?> callable = () -> {
       boolean continueLoop = true;
       while (continueLoop) {
         // well ...

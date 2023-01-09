@@ -1,7 +1,8 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.InterruptableRunnable;
+import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.tasks.WatchableCallable;
+import de.pollmann.watchdog.tasks.WatchableRunnable;
 
 import java.util.concurrent.*;
 
@@ -32,19 +33,20 @@ public class WatchdogFactory {
     };
   }
 
-  public <T> Future<?> submitFunctionCall(long timeoutInMilliseconds, WatchableCallable<T> callable) {
+  public <T> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<T> callable) {
     return worker.submitFunctionCall(timeoutInMilliseconds, callable);
   }
 
-  public <T> TaskResult<T> waitForCompletion(long timeoutInMilliseconds, Callable<T> callable) {
+  public Future<?> submitFunctionCall(long timeoutInMilliseconds, WatchableRunnable runnable) {
+    return worker.submitFunctionCall(timeoutInMilliseconds, runnable);
+  }
+
+  public <T> TaskResult<T> waitForCompletion(long timeoutInMilliseconds, Watchable<T> callable) {
     return worker.waitForCompletion(timeoutInMilliseconds, callable);
   }
 
-  public TaskResult<?> waitForCompletion(long timeoutInMilliseconds, InterruptableRunnable runnable) {
-    return worker.waitForCompletion(timeoutInMilliseconds, () -> {
-      runnable.run();
-      return null;
-    });
+  public TaskResult<?> waitForCompletion(long timeoutInMilliseconds, WatchableRunnable runnable) {
+    return worker.waitForCompletion(timeoutInMilliseconds, runnable);
   }
 
 }

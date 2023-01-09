@@ -1,5 +1,6 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.tasks.WatchableCallable;
 
 import java.util.concurrent.Callable;
@@ -18,16 +19,17 @@ class WatchdogWorker {
     this.workerPool = workerPool;
   }
 
-  public <T> Future<?> submitFunctionCall(long timeoutInMilliseconds, WatchableCallable<T> callable) {
+  public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable) {
     return watchdogPool.submit(() ->
-      callable.finishedWithResult(waitForCompletion(timeoutInMilliseconds, callable))
+      watchable.finishedWithResult(waitForCompletion(timeoutInMilliseconds, watchable))
     );
   }
 
-  public <T> TaskResult<T> waitForCompletion(long timeoutInMilliseconds, Callable<T> callable) {
+  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) {
     try {
-      Future<T> future = workerPool.submit(callable);
-      T result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+      Future<OUT> future = workerPool.submit(watchable);
+      OUT result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+      // TODO: check if future isDone()
       return TaskResult.createOK(result);
     } catch (TimeoutException timeoutException) {
       return TaskResult.createTimeout(timeoutException);
