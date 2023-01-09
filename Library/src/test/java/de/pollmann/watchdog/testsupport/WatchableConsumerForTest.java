@@ -14,7 +14,8 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
 
   private TaskResult<Object> lastResult = null;
 
-  public WatchableConsumerForTest(Consumer<Integer> consumer) {
+  public WatchableConsumerForTest(Consumer<Integer> consumer, Integer input) {
+    super(input);
     this.consumer = consumer;
   }
 
@@ -35,8 +36,8 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
   }
 
   public static WatchableConsumerForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Consumer<Integer> consumer, Integer input) {
-    WatchableConsumerForTest watchableConsumerForTest = new WatchableConsumerForTest(consumer);
-    Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableConsumerForTest, input);
+    WatchableConsumerForTest watchableConsumerForTest = new WatchableConsumerForTest(consumer, input);
+    Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableConsumerForTest);
     while (!watched.isDone()) {
       try {
         Thread.sleep(100);
@@ -46,4 +47,10 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
     }
     return watchableConsumerForTest;
   }
+
+  @Override
+  public WatchableConsumerForTest clone(Integer newInput) {
+    return new WatchableConsumerForTest(consumer, newInput);
+  }
+
 }

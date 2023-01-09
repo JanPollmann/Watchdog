@@ -1,6 +1,8 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
+
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -12,8 +14,8 @@ class WatchdogWorker {
   private final ExecutorService watchdogPool;
 
   public WatchdogWorker(ExecutorService watchdogPool, ExecutorService workerPool) {
-    this.watchdogPool = watchdogPool;
-    this.workerPool = workerPool;
+    this.watchdogPool = Objects.requireNonNull(watchdogPool);
+    this.workerPool = Objects.requireNonNull(workerPool);
   }
 
   public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable) {

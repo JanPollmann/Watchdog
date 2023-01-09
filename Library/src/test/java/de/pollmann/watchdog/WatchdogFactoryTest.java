@@ -1,12 +1,10 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.WatchableFunction;
 import de.pollmann.watchdog.testsupport.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 public class WatchdogFactoryTest {

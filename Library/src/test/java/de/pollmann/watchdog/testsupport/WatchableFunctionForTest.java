@@ -14,13 +14,19 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
 
   private TaskResult<Integer> lastResult = null;
 
-  public WatchableFunctionForTest(Function<Integer,Integer> function) {
+  public WatchableFunctionForTest(Function<Integer,Integer> function, Integer input) {
+    super(input);
     this.function = function;
   }
 
   @Override
   public Integer apply(Integer integer) {
     return function.apply(integer);
+  }
+
+  @Override
+  public WatchableFunctionForTest clone(Integer newInput) {
+    return new WatchableFunctionForTest(function, newInput);
   }
 
   @Override
@@ -35,8 +41,8 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
   }
 
   public static WatchableFunctionForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Function<Integer,Integer> function, Integer input) {
-    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(function);
-    Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableFunctionForTest, input);
+    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(function, input);
+    Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableFunctionForTest);
     while (!watched.isDone()) {
       try {
         Thread.sleep(100);
