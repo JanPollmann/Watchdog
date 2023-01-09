@@ -1,4 +1,14 @@
 = Java (repeated) function call support
+Jan Pollmann <pollmannjanf@gmail.com>
+:compat-mode!:
+:url-org: https://github.com/JanPollmann
+:url-repo: {url-org}/Watchdog
+:url-rel-file-base:
+:url-rel-tree-base:
+ifdef::env-site,env-yard[]
+:url-rel-file-base: {url-repo}/blob/HEAD/
+:url-rel-tree-base: {url-repo}/tree/HEAD/
+endif::[]
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
@@ -18,23 +28,34 @@ TODO publishing
 3. create an asynchronous function call with `WatchdogFactory#submitFunctionCall`, a synchronized function call using `WatchdogFactory#waitForCompletion` or create a `RepeatableTask` with `WatchdogFactory#createRepeated`
 
 === Important
+[CAUTION]
+====
 * As soon as the internal worker of the `WatchdogFactory` gets garbage collected, `ExecutorServices#shutdown` is called for every `ExecutorServices` (finalize)
 ** a `RepeatableTask` has a reference to the internal worker
 ** to terminate the RepeatableTask call `RepeatableTask#terminate`
 ** a terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
 * The timeout is specified in milliseconds
 ** a timeout of 0 ms will be handled as `no timeout`
+====
 
 == Example
 Just implement `loop` +
 Remark: A timeout of 0 ms will be handled as `no timeout`
+ifdef::env-github[]
+----
+include::{url-rel-file-base}Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java[]
+----
+endif::[]
+ifndef::env-github[]
 [source, java]
 ----
 include::Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java[]
 ----
+endif::[]
 
 Possible `AppContext` with a separated `WachdogFactory` for the whole application (not required).
+
 [source, java]
 ----
-include::Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java[]
+include::{url-rel-file-base}Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java[]
 ----
