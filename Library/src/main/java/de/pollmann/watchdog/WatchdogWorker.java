@@ -1,9 +1,6 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
-import de.pollmann.watchdog.tasks.WatchableCallable;
-
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;

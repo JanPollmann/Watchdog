@@ -14,7 +14,7 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void watchdogOneSecond_noDelay_OK() {
+  void runnable_OK() {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {});
 
     assertRunnableResultWithOk(result);
@@ -22,82 +22,15 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void nonBlocking_watchdogOneSecond_noDelay_OK() throws InterruptedException {
+  void runnable_OK_submit() throws InterruptedException {
     WatchableRunnableForTest runnable = WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {});
 
     assertRunnableResultWithOk(runnable.getLastResult());
   }
 
-  private void assertRunnableResultWithOk(TaskResult<?> result) {
-    Assertions.assertNotNull(result);
-    Assertions.assertFalse(result.hasError());
-    Assertions.assertEquals(ResultCode.OK, result.getCode());
-    Assertions.assertNull(result.getErrorReason());
-    // assert null => runnable!
-    Assertions.assertNull(result.getResult());
-  }
-
   @Test
   @Timeout(2)
-  void runnable_userException_throwable_resultsERROR() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
-      throw new RuntimeException();
-    });
-
-    assertExecutionException(result);
-    Assertions.assertTrue(result.getErrorReason() instanceof RuntimeException);
-  }
-
-  @Test
-  @Timeout(2)
-  void runnable_userException_nullPointer_resultsERROR() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
-      Object object = null;
-      String s = object.toString();
-    });
-
-    assertNullPointerException(result);
-  }
-
-  @Test
-  @Timeout(2)
-  void callable_userException_nullPointer_resultsERROR() {
-    TaskResult<String> result = watchdogFactory.waitForCompletion(1000, () -> {
-      Object object = null;
-      return object.toString();
-    });
-
-    assertNullPointerException(result);
-  }
-
-  @Test
-  @Timeout(2)
-  void nonBlocking_runnable_userException_nullPointer_resultsERROR() {
-    assertNullPointerException(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {
-      Object object = null;
-      String s = object.toString();
-    }).getLastResult());
-  }
-
-  @Test
-  @Timeout(2)
-  void nonBlocking_callable_userException_nullPointer_resultsERROR() {
-    assertNullPointerException(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
-      Object object = null;
-      String s = object.toString();
-      return 50;
-    }).getLastResult());
-  }
-
-  private void assertNullPointerException(TaskResult<?> result) {
-    assertExecutionException(result);
-    Assertions.assertTrue(result.getErrorReason() instanceof NullPointerException);
-  }
-
-
-  @Test
-  @Timeout(2)
-  void watchdogOneSecond_delay500ms_return50_OK() {
+  void callable_return50_OK() {
     int returned = 50;
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
       Thread.sleep(500);
@@ -109,7 +42,7 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void nonBlocking_watchdogOneSecond_delay500ms_return50_OK() {
+  void callable_return50_OK_submit() {
     int returned = 50;
     WatchableCallableForTest callable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
       Thread.sleep(500);
@@ -119,18 +52,9 @@ public class WatchdogFactoryTest {
     assertCallableWithOkAndResult(callable.getLastResult(), returned);
   }
 
-  private void assertCallableWithOkAndResult(TaskResult<?> result, int expected) {
-    Assertions.assertNotNull(result);
-    Assertions.assertFalse(result.hasError());
-    Assertions.assertEquals(ResultCode.OK, result.getCode());
-    Assertions.assertNull(result.getErrorReason());
-    Assertions.assertNotNull(result.getResult());
-    Assertions.assertEquals(expected, result.getResult());
-  }
-
   @Test
   @Timeout(2)
-  void watchdogOneSecond_sleep4seconds_TIMEOUT() {
+  void runnable_TIMEOUT() {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
       Thread.sleep(4000);
     });
@@ -140,7 +64,7 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void nonBlocking_watchdogOneSecond_sleep4seconds_TIMEOUT() {
+  void runnable_TIMEOUT_submit() {
     WatchableRunnableForTest runnable = WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {
       Thread.sleep(4000);
     });
@@ -148,18 +72,83 @@ public class WatchdogFactoryTest {
     assertTimeout(runnable.getLastResult());
   }
 
-  private void assertTimeout(TaskResult<?> result) {
-    Assertions.assertNotNull(result);
-    Assertions.assertTrue(result.hasError());
-    Assertions.assertEquals(ResultCode.TIMEOUT, result.getCode());
-    Assertions.assertNotNull(result.getErrorReason());
-    Assertions.assertNull(result.getResult());
-    Assertions.assertTrue(result.getErrorReason() instanceof TimeoutException);
+  @Test
+  @Timeout(2)
+  void callable_TIMEOUT() {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+      Thread.sleep(4000);
+      return null;
+    });
+
+    assertTimeout(result);
   }
 
   @Test
   @Timeout(2)
-  void watchdogOneSecond_sleep500ms_throwException_ERROR() {
+  void callable_TIMEOUT_submit() {
+    WatchableCallableForTest runnable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+      Thread.sleep(4000);
+      return null;
+    });
+
+    assertTimeout(runnable.getLastResult());
+  }
+
+  @Test
+  @Timeout(2)
+  void runnable_runtimeException_ERROR() {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+      throw new RuntimeException();
+    });
+
+    assertExecutionException(result);
+    Assertions.assertTrue(result.getErrorReason() instanceof RuntimeException);
+  }
+
+  @Test
+  @Timeout(2)
+  void runnable_nullPointerException_ERROR_submit() {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+      Object object = null;
+      String s = object.toString();
+    });
+
+    assertNullPointerException(result);
+  }
+
+  @Test
+  @Timeout(2)
+  void runnable_nullPointerException_ERROR() {
+    assertNullPointerException(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+      Object object = null;
+      String s = object.toString();
+    }).getLastResult());
+  }
+
+  @Test
+  @Timeout(2)
+  void callable_nullPointerException_ERROR() {
+    TaskResult<String> result = watchdogFactory.waitForCompletion(1000, () -> {
+      Object object = null;
+      return object.toString();
+    });
+
+    assertNullPointerException(result);
+  }
+
+  @Test
+  @Timeout(2)
+  void callable_nullPointerException_ERROR_submit() {
+    assertNullPointerException(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+      Object object = null;
+      String s = object.toString();
+      return 50;
+    }).getLastResult());
+  }
+
+  @Test
+  @Timeout(2)
+  void runnable_testException_ERROR() {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
       Thread.sleep(500);
       throw new TestException();
@@ -170,13 +159,22 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void nonBlocking_watchdogOneSecond_sleep500ms_throwException_ERROR() {
+  void runnable_testException_ERROR_submit() {
     WatchableCallableForTest callable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
       Thread.sleep(500);
       throw new TestException();
     });
 
     assertErrorWithTestException(callable.getLastResult());
+  }
+
+  private void assertTimeout(TaskResult<?> result) {
+    Assertions.assertNotNull(result);
+    Assertions.assertTrue(result.hasError());
+    Assertions.assertEquals(ResultCode.TIMEOUT, result.getCode());
+    Assertions.assertNotNull(result.getErrorReason());
+    Assertions.assertNull(result.getResult());
+    Assertions.assertTrue(result.getErrorReason() instanceof TimeoutException);
   }
 
   private void assertErrorWithTestException(TaskResult<?> result) {
@@ -197,6 +195,29 @@ public class WatchdogFactoryTest {
     Assertions.assertNotNull(result.getExecutionException());
     Assertions.assertNotNull(result.getExecutionException().getCause());
     Assertions.assertEquals(result.getExecutionException().getCause(), result.getErrorReason());
+  }
+
+  private void assertNullPointerException(TaskResult<?> result) {
+    assertExecutionException(result);
+    Assertions.assertTrue(result.getErrorReason() instanceof NullPointerException);
+  }
+
+  private void assertRunnableResultWithOk(TaskResult<?> result) {
+    Assertions.assertNotNull(result);
+    Assertions.assertFalse(result.hasError());
+    Assertions.assertEquals(ResultCode.OK, result.getCode());
+    Assertions.assertNull(result.getErrorReason());
+    // assert null => runnable!
+    Assertions.assertNull(result.getResult());
+  }
+
+  private void assertCallableWithOkAndResult(TaskResult<?> result, int expected) {
+    Assertions.assertNotNull(result);
+    Assertions.assertFalse(result.hasError());
+    Assertions.assertEquals(ResultCode.OK, result.getCode());
+    Assertions.assertNull(result.getErrorReason());
+    Assertions.assertNotNull(result.getResult());
+    Assertions.assertEquals(expected, result.getResult());
   }
 
 }
