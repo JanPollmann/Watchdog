@@ -1,10 +1,7 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.WatchableFunction;
-import de.pollmann.watchdog.testsupport.TestException;
-import de.pollmann.watchdog.testsupport.WatchableCallableForTest;
-import de.pollmann.watchdog.testsupport.WatchableFunctionForTest;
-import de.pollmann.watchdog.testsupport.WatchableRunnableForTest;
+import de.pollmann.watchdog.testsupport.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -54,6 +51,24 @@ public class WatchdogFactoryTest {
     });
 
     assertCallableWithOkAndResult(callable.getLastResult(), returned);
+  }
+
+  @Test
+  @Timeout(2)
+  void consumer_in50_OK() {
+    int input = 50;
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, in -> {}, input);
+
+    assertRunnableResultWithOk(result);
+  }
+
+  @Test
+  @Timeout(2)
+  void consumer_in50_out50_OK_submit() {
+    int input = 50;
+    WatchableConsumerForTest function = WatchableConsumerForTest.submitWatchable(watchdogFactory,1000, in -> {}, input);
+
+    assertRunnableResultWithOk(function.getLastResult());
   }
 
   @Test

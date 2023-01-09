@@ -1,10 +1,12 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.tasks.WatchableConsumer;
 import de.pollmann.watchdog.tasks.WatchableFunction;
 import de.pollmann.watchdog.tasks.WatchableRunnable;
 
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class WatchdogFactory {
@@ -47,12 +49,21 @@ public class WatchdogFactory {
     return worker.submitFunctionCall(timeoutInMilliseconds, function);
   }
 
+  public TaskResult<?> waitForCompletion(long timeoutInMilliseconds, WatchableRunnable runnable) {
+    return worker.waitForCompletion(timeoutInMilliseconds, runnable);
+  }
+
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> callable) {
     return worker.waitForCompletion(timeoutInMilliseconds, callable);
   }
 
-  public TaskResult<?> waitForCompletion(long timeoutInMilliseconds, WatchableRunnable runnable) {
-    return worker.waitForCompletion(timeoutInMilliseconds, runnable);
+  public <IN> TaskResult<?> waitForCompletion(long timeoutInMilliseconds, Consumer<IN> consumer, IN data) {
+    return waitForCompletion(timeoutInMilliseconds, new WrappedWatchableConsumer<>(consumer), data);
+  }
+
+  public <IN> TaskResult<?> waitForCompletion(long timeoutInMilliseconds, WatchableConsumer<IN> consumer, IN data) {
+    consumer.setInput(data);
+    return worker.waitForCompletion(timeoutInMilliseconds, consumer);
   }
 
   public <IN,OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Function<IN,OUT> function, IN data) {
@@ -73,8 +84,22 @@ public class WatchdogFactory {
     }
 
     @Override
-    public OUT apply(IN in) {
-      return function.apply(in);
+    public OUT apply(IN input) {
+      return function.apply(input);
+    }
+  }
+
+  private static class WrappedWatchableConsumer<IN> extends WatchableConsumer<IN> {
+
+    private final Consumer<IN> consumer;
+
+    public WrappedWatchableConsumer(Consumer<IN> consumer) {
+      this.consumer = consumer;
+    }
+
+    @Override
+    public void accept(IN input) throws Exception {
+      consumer.accept(input);
     }
   }
 

@@ -17,5 +17,5 @@ public abstract class WatchableFunction<IN, OUT> implements Watchable<OUT> {
     return apply(getInput());
   }
 
-  public abstract OUT apply(IN in) throws Exception;
+  public abstract OUT apply(IN input) throws Exception;
 }
