@@ -6,8 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class WatchdogFactoryTest {
+class WatchdogFactoryTest {
 
   private final WatchdogFactory watchdogFactory = new WatchdogFactory();
 
@@ -62,9 +63,20 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
+  void consumer_in50_OK_withResultConsumer() {
+    int input = 50;
+    AtomicBoolean called = new AtomicBoolean(false);
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, res -> called.set(true), in -> {}, input);
+
+    Assertions.assertTrue(called.get());
+    assertRunnableResultWithOk(result);
+  }
+
+  @Test
+  @Timeout(2)
   void consumer_in50_out50_OK_submit() {
     int input = 50;
-    WatchableConsumerForTest function = WatchableConsumerForTest.submitWatchable(watchdogFactory,1000, in -> {}, input);
+    WatchableConsumerForTest function = WatchableConsumerForTest.submitWatchable(watchdogFactory, 1000, result -> {}, in -> {}, input);
 
     assertRunnableResultWithOk(function.getLastResult());
   }
@@ -80,9 +92,20 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
+  void function_in50_out50_OK_withResultConsumer() {
+    int input = 50;
+    AtomicBoolean called = new AtomicBoolean(false);
+    TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, res -> called.set(true), in -> in, input);
+
+    Assertions.assertTrue(called.get());
+    assertCallableWithOkAndResult(result, input);
+  }
+
+  @Test
+  @Timeout(2)
   void function_in50_out50_OK_submit() {
     int input = 50;
-    WatchableFunctionForTest function = WatchableFunctionForTest.submitWatchable(watchdogFactory,1000, in -> in, input);
+    WatchableFunctionForTest function = WatchableFunctionForTest.submitWatchable(watchdogFactory,1000, result -> {}, in -> in, input);
 
     assertCallableWithOkAndResult(function.getLastResult(), input);
   }

@@ -6,27 +6,33 @@ import de.pollmann.watchdog.tasks.WatchableFunction;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer> implements WatchableForTest<Integer> {
-
-  private final Function<Integer,Integer> function;
+public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer> implements StoreResult<Integer> {
 
   private TaskResult<Integer> lastResult = null;
+  private int finishedCounter = 0;
 
-  public WatchableFunctionForTest(Function<Integer,Integer> function, Integer input) {
-    super(input);
-    this.function = function;
+  private WatchableFunctionForTest(ConsumerProxy<TaskResult<Integer>> resultConsumer, Function<Integer, Integer> function, Integer input) {
+    super(resultConsumer, function, input);
+    Consumer<TaskResult<Integer>> consumer = resultConsumer.getConsumer();
+    if (consumer == null) {
+      resultConsumer.setConsumer(this::internResultConsumer);
+    } else {
+      resultConsumer.setConsumer(result -> {
+        this.internResultConsumer(result);
+        consumer.accept(result);
+      });
+    }
   }
 
-  @Override
-  public Integer apply(Integer integer) {
-    return function.apply(integer);
+  public WatchableFunctionForTest(Consumer<TaskResult<Integer>> resultConsumer, Function<Integer, Integer> function, Integer input) {
+    this(new ConsumerProxy<>(resultConsumer), function, input);
   }
 
-  @Override
-  public WatchableFunctionForTest clone(Integer newInput) {
-    return new WatchableFunctionForTest(function, newInput);
+  public WatchableFunctionForTest(Function<Integer, Integer> function, Integer input) {
+    this(new ConsumerProxy<>(), function, input);
   }
 
   @Override
@@ -35,13 +41,17 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
   }
 
   @Override
-  public void finishedWithResult(TaskResult<Integer> result) {
-    super.finishedWithResult(result);
-    lastResult = result;
+  public int getFinishedCounter() {
+    return finishedCounter;
   }
 
-  public static WatchableFunctionForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Function<Integer,Integer> function, Integer input) {
-    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(function, input);
+  private void internResultConsumer(TaskResult<Integer> result) {
+    lastResult = result;
+    finishedCounter++;
+  }
+
+  public static WatchableFunctionForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Consumer<TaskResult<Integer>> resultConsumer, Function<Integer,Integer> function, Integer input) {
+    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(resultConsumer, function, input);
     Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableFunctionForTest);
     while (!watched.isDone()) {
       try {

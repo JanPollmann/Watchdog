@@ -1,7 +1,7 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.Watchable;
-import de.pollmann.watchdog.tasks.WatchableRunnable;
+import de.pollmann.watchdog.tasks.*;
+
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -35,8 +35,24 @@ public class WatchdogFactory {
     };
   }
 
-  public Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<?> callable) {
-    return worker.submitFunctionCall(timeoutInMilliseconds, callable);
+  public <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, WatchableCallable<OUT> callable) {
+    return RepeatableTaskWithoutInput.create(worker, timeoutInMilliseconds, callable);
+  }
+
+  public RepeatableTaskWithoutInput<Object> createRepeated(long timeoutInMilliseconds, WatchableRunnable runnable) {
+    return RepeatableTaskWithoutInput.create(worker, timeoutInMilliseconds, runnable);
+  }
+
+  public <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, WatchableFunction<IN, OUT> function) {
+    return RepeatableTaskWithInput.create(worker, timeoutInMilliseconds, function);
+  }
+
+  public <IN> RepeatableTaskWithInput<IN, Object> createRepeated(long timeoutInMilliseconds, WatchableConsumer<IN> consumer) {
+    return RepeatableTaskWithInput.create(worker, timeoutInMilliseconds, consumer);
+  }
+
+  public Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<?> watchable) {
+    return worker.submitFunctionCall(timeoutInMilliseconds, watchable);
   }
 
   public Future<?> submitFunctionCall(long timeoutInMilliseconds, WatchableRunnable runnable) {
@@ -51,12 +67,20 @@ public class WatchdogFactory {
     return worker.waitForCompletion(timeoutInMilliseconds, callable);
   }
 
+  public <IN> TaskResult<?> waitForCompletion(long timeoutInMilliseconds, Consumer<TaskResult<Object>> resultConsumer, Consumer<IN> consumer, IN data) {
+    return waitForCompletion(timeoutInMilliseconds, new WatchableConsumer<>(resultConsumer, consumer, data));
+  }
+
+  public <IN,OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Consumer<TaskResult<OUT>> resultConsumer, Function<IN,OUT> function, IN data) {
+    return waitForCompletion(timeoutInMilliseconds, new WatchableFunction<>(resultConsumer, function, data));
+  }
+
   public <IN> TaskResult<?> waitForCompletion(long timeoutInMilliseconds, Consumer<IN> consumer, IN data) {
-    return waitForCompletion(timeoutInMilliseconds, new WrappedWatchableConsumer<>(consumer, data));
+    return waitForCompletion(timeoutInMilliseconds, new WatchableConsumer<>(consumer, data));
   }
 
   public <IN,OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Function<IN,OUT> function, IN data) {
-    return waitForCompletion(timeoutInMilliseconds, new WrappedWatchableFunction<>(function, data));
+    return waitForCompletion(timeoutInMilliseconds, new WatchableFunction<>(function, data));
   }
 
 }

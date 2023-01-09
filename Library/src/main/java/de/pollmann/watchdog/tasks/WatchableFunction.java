@@ -1,10 +1,26 @@
 package de.pollmann.watchdog.tasks;
 
-public abstract class WatchableFunction<IN, OUT> implements Watchable<OUT> {
+import de.pollmann.watchdog.TaskResult;
 
-  private final IN input;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-  public WatchableFunction(IN input) {
+public class WatchableFunction<IN, OUT> implements Watchable<OUT> {
+
+  protected final IN input;
+  protected final Consumer<TaskResult<OUT>> resultConsumer;
+  protected final Function<IN,OUT> function;
+
+  public WatchableFunction(Consumer<TaskResult<OUT>> resultConsumer, Function<IN, OUT> function, IN input) {
+    this.resultConsumer = Objects.requireNonNull(resultConsumer);
+    this.function = function;
+    this.input = input;
+  }
+
+  public WatchableFunction(Function<IN, OUT> function, IN input) {
+    this.resultConsumer = WatchableFunction::emptyResultConsumer;
+    this.function = function;
     this.input = input;
   }
 
@@ -13,7 +29,20 @@ public abstract class WatchableFunction<IN, OUT> implements Watchable<OUT> {
     return apply(input);
   }
 
-  public abstract OUT apply(IN input) throws Exception;
+  @Override
+  public final void finishedWithResult(TaskResult<OUT> result) {
+    resultConsumer.accept(result);
+  }
 
-  public abstract WatchableFunction<IN, OUT> clone(IN newInput);
+  public OUT apply(IN input) throws Exception {
+    return function.apply(input);
+  }
+
+  public WatchableFunction<IN, OUT> clone(IN newInput) {
+    return new WatchableFunction<>(resultConsumer, function, newInput);
+  }
+
+  protected static void emptyResultConsumer(TaskResult<?> result) {
+    // no op
+  }
 }

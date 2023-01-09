@@ -5,7 +5,7 @@ import de.pollmann.watchdog.tasks.*;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
-class RepeatableTaskWithInput<IN, OUT> {
+public class RepeatableTaskWithInput<IN, OUT> {
 
   private final WatchableFunction<IN, OUT> repeated;
   private final WatchdogWorker worker;
@@ -26,10 +26,10 @@ class RepeatableTaskWithInput<IN, OUT> {
   }
 
   public Future<?> submitFunctionCall(IN input) {
-    return worker.submitFunctionCall(timeoutInMilliseconds, repeated);
+    return worker.submitFunctionCall(timeoutInMilliseconds, repeated.clone(input));
   }
 
   public TaskResult<OUT> waitForCompletion(IN input) {
-    return worker.waitForCompletion(timeoutInMilliseconds, repeated);
+    return worker.waitForCompletion(timeoutInMilliseconds, repeated.clone(input));
   }
 }

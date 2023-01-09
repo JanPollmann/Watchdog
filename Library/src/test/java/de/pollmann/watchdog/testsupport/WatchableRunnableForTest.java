@@ -7,11 +7,12 @@ import org.junit.jupiter.api.Assertions;
 
 import java.util.concurrent.Future;
 
-public class WatchableRunnableForTest implements WatchableRunnable, WatchableForTest<Object> {
+public class WatchableRunnableForTest implements WatchableRunnable, StoreResult<Object> {
 
   private final WatchableRunnable runnable;
 
   private TaskResult<Object> lastResult = null;
+  private int finishedCounter = 0;
 
   public WatchableRunnableForTest(WatchableRunnable runnable) {
     this.runnable = runnable;
@@ -28,9 +29,15 @@ public class WatchableRunnableForTest implements WatchableRunnable, WatchableFor
   }
 
   @Override
+  public int getFinishedCounter() {
+    return finishedCounter;
+  }
+
+  @Override
   public void finishedWithResult(TaskResult<Object> result) {
     WatchableRunnable.super.finishedWithResult(result);
     lastResult = result;
+    finishedCounter++;
   }
 
   public static WatchableRunnableForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, WatchableRunnable runnable) {

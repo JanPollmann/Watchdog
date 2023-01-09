@@ -1,20 +1,35 @@
 package de.pollmann.watchdog.tasks;
 
-public abstract class WatchableConsumer<IN> extends WatchableFunction<IN, Object> {
+import de.pollmann.watchdog.TaskResult;
 
-  public WatchableConsumer(IN input) {
-    super(input);
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+public class WatchableConsumer<IN> extends WatchableFunction<IN, Object> {
+
+  public WatchableConsumer(Consumer<TaskResult<Object>> resultConsumer, Function<IN, Object> function, IN input) {
+    super(resultConsumer, function, input);
+  }
+
+  public WatchableConsumer(Function<IN, Object> function, IN input) {
+    super(function, input);
+  }
+
+  public WatchableConsumer(Consumer<TaskResult<Object>> resultConsumer, Consumer<IN> consumer, IN input) {
+    this(resultConsumer, in -> {
+      consumer.accept(in); return null;
+    }, input);
+  }
+
+  public WatchableConsumer(Consumer<IN> consumer, IN input) {
+    this(in -> {
+      consumer.accept(in); return null;
+    }, input);
   }
 
   @Override
-  public Object apply(IN input) throws Exception {
-    accept(input);
-    return null;
+  public WatchableConsumer<IN> clone(IN newValue) {
+    return new WatchableConsumer<>(resultConsumer, function, newValue);
   }
-
-  public abstract void accept(IN input) throws Exception;
-
-  @Override
-  public abstract WatchableConsumer<IN> clone(IN newValue);
 
 }

@@ -20,20 +20,23 @@ class WatchdogWorker {
 
   public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable) {
     return watchdogPool.submit(() ->
-      watchable.finishedWithResult(waitForCompletion(timeoutInMilliseconds, watchable))
+      waitForCompletion(timeoutInMilliseconds, watchable)
     );
   }
 
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) {
+    TaskResult<OUT> taskResult;
     try {
       Future<OUT> future = workerPool.submit(watchable);
       OUT result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
       // TODO: check if future isDone()
-      return TaskResult.createOK(result);
+      taskResult = TaskResult.createOK(result);
     } catch (TimeoutException timeoutException) {
-      return TaskResult.createTimeout(timeoutException);
+      taskResult = TaskResult.createTimeout(timeoutException);
     } catch (Throwable throwable) {
-      return TaskResult.createError(throwable);
+      taskResult = TaskResult.createError(throwable);
     }
+    watchable.finishedWithResult(taskResult);
+    return taskResult;
   }
 }
