@@ -1,5 +1,6 @@
 package de.pollmann.watchdog.testsupport;
 
+import de.pollmann.watchdog.TaskResult;
 import de.pollmann.watchdog.WatchdogFactory;
 import de.pollmann.watchdog.tasks.WatchableCallable;
 import org.junit.jupiter.api.Assertions;
@@ -7,9 +8,11 @@ import org.junit.jupiter.api.Assertions;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-public class WatchableCallableForTest extends WatchableForTest<Integer> implements WatchableCallable<Integer> {
+public class WatchableCallableForTest implements WatchableCallable<Integer>, WatchableForTest<Integer> {
 
   private final Callable<Integer> callable;
+
+  private TaskResult<Integer> lastResult = null;
 
   public WatchableCallableForTest(Callable<Integer> callable) {
     this.callable = callable;
@@ -18,6 +21,17 @@ public class WatchableCallableForTest extends WatchableForTest<Integer> implemen
   @Override
   public Integer call() throws Exception {
     return callable.call();
+  }
+
+  @Override
+  public TaskResult<Integer> getLastResult() {
+    return lastResult;
+  }
+
+  @Override
+  public void finishedWithResult(TaskResult<Integer> result) {
+    WatchableCallable.super.finishedWithResult(result);
+    lastResult = result;
   }
 
   public static WatchableCallableForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Callable<Integer> callable) {
@@ -32,4 +46,5 @@ public class WatchableCallableForTest extends WatchableForTest<Integer> implemen
     }
     return watchableCallableForTest;
   }
+
 }

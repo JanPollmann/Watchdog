@@ -1,21 +1,21 @@
 package de.pollmann.watchdog.tasks;
 
-import java.util.function.Function;
+public abstract class WatchableFunction<IN, OUT> implements Watchable<OUT> {
 
-public abstract class WatchableFunction<IN, OUT> implements Watchable<OUT>, Function<IN, OUT> {
+  private IN input = null;
 
-  private IN data = null;
-
-  public void setData(IN data) {
-    this.data = data;
+  public void setInput(IN input) {
+    this.input = input;
   }
 
-  public IN getData() {
-    return data;
+  public IN getInput() {
+    return input;
   }
 
   @Override
   public OUT call() throws Exception {
-    return apply(getData());
+    return apply(getInput());
   }
+
+  public abstract OUT apply(IN in) throws Exception;
 }

@@ -1,11 +1,11 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
-import de.pollmann.watchdog.tasks.WatchableCallable;
 import de.pollmann.watchdog.tasks.WatchableFunction;
 import de.pollmann.watchdog.tasks.WatchableRunnable;
 
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 public class WatchdogFactory {
 
@@ -43,7 +43,7 @@ public class WatchdogFactory {
   }
 
   public <IN> Future<?> submitFunctionCall(long timeoutInMilliseconds, WatchableFunction<IN,?> function, IN data) {
-    function.setData(data);
+    function.setInput(data);
     return worker.submitFunctionCall(timeoutInMilliseconds, function);
   }
 
@@ -55,9 +55,27 @@ public class WatchdogFactory {
     return worker.waitForCompletion(timeoutInMilliseconds, runnable);
   }
 
+  public <IN,OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Function<IN,OUT> function, IN data) {
+    return waitForCompletion(timeoutInMilliseconds, new WrappedWatchableFunction<>(function), data);
+  }
+
   public <IN,OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, WatchableFunction<IN,OUT> function, IN data) {
-    function.setData(data);
+    function.setInput(data);
     return worker.waitForCompletion(timeoutInMilliseconds, function);
+  }
+
+  private static class WrappedWatchableFunction<IN,OUT> extends WatchableFunction<IN,OUT> {
+
+    private final Function<IN,OUT> function;
+
+    public WrappedWatchableFunction(Function<IN,OUT> function) {
+      this.function = function;
+    }
+
+    @Override
+    public OUT apply(IN in) {
+      return function.apply(in);
+    }
   }
 
 }

@@ -1,14 +1,17 @@
 package de.pollmann.watchdog.testsupport;
 
+import de.pollmann.watchdog.TaskResult;
 import de.pollmann.watchdog.WatchdogFactory;
 import de.pollmann.watchdog.tasks.WatchableRunnable;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.concurrent.Future;
 
-public class WatchableRunnableForTest extends WatchableForTest<Object> implements WatchableRunnable {
+public class WatchableRunnableForTest implements WatchableRunnable, WatchableForTest<Object> {
 
   private final WatchableRunnable runnable;
+
+  private TaskResult<Object> lastResult = null;
 
   public WatchableRunnableForTest(WatchableRunnable runnable) {
     this.runnable = runnable;
@@ -17,6 +20,17 @@ public class WatchableRunnableForTest extends WatchableForTest<Object> implement
   @Override
   public void run() throws Exception {
     runnable.run();
+  }
+
+  @Override
+  public TaskResult<Object> getLastResult() {
+    return lastResult;
+  }
+
+  @Override
+  public void finishedWithResult(TaskResult<Object> result) {
+    WatchableRunnable.super.finishedWithResult(result);
+    lastResult = result;
   }
 
   public static WatchableRunnableForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, WatchableRunnable runnable) {
@@ -31,4 +45,5 @@ public class WatchableRunnableForTest extends WatchableForTest<Object> implement
     }
     return watchableRunnableForTest;
   }
+
 }

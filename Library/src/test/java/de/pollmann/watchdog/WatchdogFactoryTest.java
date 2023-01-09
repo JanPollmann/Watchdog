@@ -1,11 +1,15 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.WatchableFunction;
 import de.pollmann.watchdog.testsupport.TestException;
 import de.pollmann.watchdog.testsupport.WatchableCallableForTest;
+import de.pollmann.watchdog.testsupport.WatchableFunctionForTest;
 import de.pollmann.watchdog.testsupport.WatchableRunnableForTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 public class WatchdogFactoryTest {
@@ -30,7 +34,7 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void callable_return50_OK() {
+  void callable_out50_OK() {
     int returned = 50;
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
       Thread.sleep(500);
@@ -42,7 +46,7 @@ public class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void callable_return50_OK_submit() {
+  void callable_out50_OK_submit() {
     int returned = 50;
     WatchableCallableForTest callable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
       Thread.sleep(500);
@@ -50,6 +54,24 @@ public class WatchdogFactoryTest {
     });
 
     assertCallableWithOkAndResult(callable.getLastResult(), returned);
+  }
+
+  @Test
+  @Timeout(2)
+  void function_in50_out50_OK() {
+    int input = 50;
+    TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, in -> in, input);
+
+    assertCallableWithOkAndResult(result, input);
+  }
+
+  @Test
+  @Timeout(2)
+  void function_in50_out50_OK_submit() {
+    int input = 50;
+    WatchableFunctionForTest function = WatchableFunctionForTest.submitWatchable(watchdogFactory,1000, in -> in, input);
+
+    assertCallableWithOkAndResult(function.getLastResult(), input);
   }
 
   @Test
