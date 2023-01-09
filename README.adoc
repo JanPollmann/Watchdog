@@ -3,12 +3,14 @@ Jan Pollmann <pollmannjanf@gmail.com>
 :compat-mode!:
 :url-org: https://github.com/JanPollmann
 :url-repo: {url-org}/Watchdog
-:url-rel-file-base:
-:url-rel-tree-base:
+:url-rel-file-base: link:
+:url-rel-tree-base: link:
 ifdef::env-github[]
 :url-rel-file-base: {url-repo}/blob/HEAD/
 :url-rel-tree-base: {url-repo}/tree/HEAD/
 endif::[]
+:path-example-1-FastLoopApp: Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java
+:path-example-1-AppContext: Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
@@ -42,20 +44,23 @@ TODO publishing
 Just implement `loop` +
 Remark: A timeout of 0 ms will be handled as `no timeout`
 ifdef::env-github[]
-----
-include::{url-rel-file-base}Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java[]
-----
+{url-rel-file-base}{path-example-1-FastLoopApp}
 endif::[]
 ifndef::env-github[]
 [source, java]
 ----
-include::Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java[]
+include::{path-example-1-FastLoopApp}[]
 ----
 endif::[]
 
 Possible `AppContext` with a separated `WachdogFactory` for the whole application (not required).
-
+ifdef::env-github[]
+{url-rel-file-base}{path-example-1-AppContext}
+endif::[]
+ifndef::env-github[]
 [source, java]
 ----
-include::{url-rel-file-base}Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java[]
+include::{path-example-1-AppContext}[]
 ----
+endif::[]
+
