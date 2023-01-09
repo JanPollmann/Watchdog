@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 public class WatchableCallableForTest implements WatchableCallable<Integer>, StoreResult<Integer> {
 
@@ -35,8 +36,11 @@ public class WatchableCallableForTest implements WatchableCallable<Integer>, Sto
   }
 
   @Override
+  public Consumer<TaskResult<Integer>> getResultConsumer() {
+    return this::finishedWithResult;
+  }
+
   public void finishedWithResult(TaskResult<Integer> result) {
-    WatchableCallable.super.finishedWithResult(result);
     lastResult = result;
     finishedCounter++;
   }

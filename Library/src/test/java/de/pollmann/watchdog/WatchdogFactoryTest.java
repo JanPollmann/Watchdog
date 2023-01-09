@@ -76,7 +76,7 @@ class WatchdogFactoryTest {
   @Timeout(2)
   void consumer_in50_out50_OK_submit() {
     int input = 50;
-    WatchableConsumerForTest function = WatchableConsumerForTest.submitWatchable(watchdogFactory, 1000, result -> {}, in -> {}, input);
+    WatchableConsumerForTest function = WatchableConsumerForTest.submitWatchable(watchdogFactory, 1000, in -> {}, input);
 
     assertRunnableResultWithOk(function.getLastResult());
   }
@@ -105,7 +105,7 @@ class WatchdogFactoryTest {
   @Timeout(2)
   void function_in50_out50_OK_submit() {
     int input = 50;
-    WatchableFunctionForTest function = WatchableFunctionForTest.submitWatchable(watchdogFactory,1000, result -> {}, in -> in, input);
+    WatchableFunctionForTest function = WatchableFunctionForTest.submitWatchable(watchdogFactory,1000, in -> in, input);
 
     assertCallableWithOkAndResult(function.getLastResult(), input);
   }

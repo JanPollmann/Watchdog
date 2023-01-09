@@ -3,10 +3,8 @@ package de.pollmann.watchdog;
 import de.pollmann.watchdog.tasks.Watchable;
 
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 class WatchdogWorker {
 
@@ -29,14 +27,35 @@ class WatchdogWorker {
     try {
       Future<OUT> future = workerPool.submit(watchable);
       OUT result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
-      // TODO: check if future isDone()
-      taskResult = TaskResult.createOK(result);
+      if (future.isDone()){
+        taskResult = TaskResult.createOK(result);
+      } else {
+        taskResult = unfinishedFuture(future);
+      }
     } catch (TimeoutException timeoutException) {
       taskResult = TaskResult.createTimeout(timeoutException);
     } catch (Throwable throwable) {
       taskResult = TaskResult.createError(throwable);
     }
-    watchable.finishedWithResult(taskResult);
+    Consumer<TaskResult<OUT>> consumer = watchable.getResultConsumer();
+    if (consumer != null) {
+      consumer.accept(taskResult);
+    }
     return taskResult;
   }
+
+  @Override
+  protected void finalize() throws Throwable {
+    super.finalize();
+    watchdogPool.shutdown();
+    workerPool.shutdown();
+  }
+
+  private <OUT> TaskResult<OUT> unfinishedFuture(Future<OUT> future) {
+    if (!future.isCancelled()) {
+      future.cancel(true);
+    }
+    return TaskResult.createError(new UnfinishedFutureException(future));
+  }
+
 }

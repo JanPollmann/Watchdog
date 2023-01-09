@@ -6,6 +6,7 @@ import de.pollmann.watchdog.tasks.WatchableRunnable;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 public class WatchableRunnableForTest implements WatchableRunnable, StoreResult<Object> {
 
@@ -34,8 +35,11 @@ public class WatchableRunnableForTest implements WatchableRunnable, StoreResult<
   }
 
   @Override
+  public Consumer<TaskResult<Object>> getResultConsumer() {
+    return this::finishedWithResult;
+  }
+
   public void finishedWithResult(TaskResult<Object> result) {
-    WatchableRunnable.super.finishedWithResult(result);
     lastResult = result;
     finishedCounter++;
   }

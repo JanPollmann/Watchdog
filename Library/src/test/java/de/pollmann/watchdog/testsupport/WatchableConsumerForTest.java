@@ -13,25 +13,12 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
   private TaskResult<Object> lastResult = null;
   private int finishedCounter = 0;
 
-  private WatchableConsumerForTest(ConsumerProxy<TaskResult<Object>> resultConsumer, Consumer<Integer> consumer, Integer input) {
+  public WatchableConsumerForTest(Consumer<TaskResult<Object>>resultConsumer, Consumer<Integer> consumer, Integer input) {
     super(resultConsumer, consumer, input);
-    Consumer<TaskResult<Object>> consumerProxy = resultConsumer.getConsumer();
-    if (consumer == null) {
-      resultConsumer.setConsumer(this::internResultConsumer);
-    } else {
-      resultConsumer.setConsumer(result -> {
-        this.internResultConsumer(result);
-        consumerProxy.accept(result);
-      });
-    }
-  }
-
-  public WatchableConsumerForTest(Consumer<TaskResult<Object>> resultConsumer, Consumer<Integer> consumer, Integer input) {
-    this(new ConsumerProxy<>(resultConsumer), consumer, input);
   }
 
   public WatchableConsumerForTest(Consumer<Integer> consumer, Integer input) {
-    this(new ConsumerProxy<>(), consumer, input);
+    super(consumer, input);
   }
 
   @Override
@@ -44,13 +31,26 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
     return finishedCounter;
   }
 
+  @Override
+  public Consumer<TaskResult<Object>> getResultConsumer() {
+    return this::internResultConsumer;
+  }
+
   private void internResultConsumer(TaskResult<Object> result) {
+    if (super.getResultConsumer() != null) {
+      super.getResultConsumer().accept(result);
+    }
     lastResult = result;
     finishedCounter++;
   }
 
-  public static WatchableConsumerForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Consumer<TaskResult<Object>> resultConsumer, Consumer<Integer> consumer, Integer input) {
-    WatchableConsumerForTest watchableConsumerForTest = new WatchableConsumerForTest(resultConsumer, consumer, input);
+  public static WatchableConsumerForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Consumer<Integer> consumer, Integer input) {
+    WatchableConsumerForTest watchableConsumerForTest = new WatchableConsumerForTest(consumer, input);
+    submitWatchable(factory, timeoutInMs, watchableConsumerForTest);
+    return watchableConsumerForTest;
+  }
+
+  public static void submitWatchable(WatchdogFactory factory, long timeoutInMs, WatchableConsumerForTest watchableConsumerForTest) {
     Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableConsumerForTest);
     while (!watched.isDone()) {
       try {
@@ -59,7 +59,6 @@ public class WatchableConsumerForTest extends WatchableConsumer<Integer> impleme
         Assertions.fail(e);
       }
     }
-    return watchableConsumerForTest;
   }
 
 }

@@ -14,25 +14,12 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
   private TaskResult<Integer> lastResult = null;
   private int finishedCounter = 0;
 
-  private WatchableFunctionForTest(ConsumerProxy<TaskResult<Integer>> resultConsumer, Function<Integer, Integer> function, Integer input) {
-    super(resultConsumer, function, input);
-    Consumer<TaskResult<Integer>> consumer = resultConsumer.getConsumer();
-    if (consumer == null) {
-      resultConsumer.setConsumer(this::internResultConsumer);
-    } else {
-      resultConsumer.setConsumer(result -> {
-        this.internResultConsumer(result);
-        consumer.accept(result);
-      });
-    }
-  }
-
   public WatchableFunctionForTest(Consumer<TaskResult<Integer>> resultConsumer, Function<Integer, Integer> function, Integer input) {
-    this(new ConsumerProxy<>(resultConsumer), function, input);
+    super(resultConsumer, function, input);
   }
 
   public WatchableFunctionForTest(Function<Integer, Integer> function, Integer input) {
-    this(new ConsumerProxy<>(), function, input);
+    super(function, input);
   }
 
   @Override
@@ -45,13 +32,26 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
     return finishedCounter;
   }
 
+  @Override
+  public Consumer<TaskResult<Integer>> getResultConsumer() {
+    return this::internResultConsumer;
+  }
+
   private void internResultConsumer(TaskResult<Integer> result) {
+    if (super.getResultConsumer() != null) {
+      super.getResultConsumer().accept(result);
+    }
     lastResult = result;
     finishedCounter++;
   }
 
-  public static WatchableFunctionForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Consumer<TaskResult<Integer>> resultConsumer, Function<Integer,Integer> function, Integer input) {
-    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(resultConsumer, function, input);
+  public static WatchableFunctionForTest submitWatchable(WatchdogFactory factory, long timeoutInMs, Function<Integer,Integer> function, Integer input) {
+    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(function, input);
+    submitWatchable(factory, timeoutInMs, watchableFunctionForTest);
+    return watchableFunctionForTest;
+  }
+
+  public static void submitWatchable(WatchdogFactory factory, long timeoutInMs, WatchableFunctionForTest watchableFunctionForTest) {
     Future<?> watched = factory.submitFunctionCall(timeoutInMs, watchableFunctionForTest);
     while (!watched.isDone()) {
       try {
@@ -60,6 +60,5 @@ public class WatchableFunctionForTest extends WatchableFunction<Integer, Integer
         Assertions.fail(e);
       }
     }
-    return watchableFunctionForTest;
   }
 }

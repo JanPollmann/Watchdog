@@ -3,10 +3,13 @@ package de.pollmann.watchdog.tasks;
 import de.pollmann.watchdog.TaskResult;
 
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 @FunctionalInterface
 public interface Watchable<OUT> extends Callable<OUT> {
-  default void finishedWithResult(TaskResult<OUT> result) {
-    // no op
+
+  default Consumer<TaskResult<OUT>> getResultConsumer() {
+    return null;
   }
+
 }

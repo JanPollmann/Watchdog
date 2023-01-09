@@ -27,9 +27,4 @@ public class WatchableConsumer<IN> extends WatchableFunction<IN, Object> {
     }, input);
   }
 
-  @Override
-  public WatchableConsumer<IN> clone(IN newValue) {
-    return new WatchableConsumer<>(resultConsumer, function, newValue);
-  }
-
 }
