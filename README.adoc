@@ -5,7 +5,7 @@ Jan Pollmann <pollmannjanf@gmail.com>
 :url-repo: {url-org}/Watchdog
 :url-rel-file-base:
 :url-rel-tree-base:
-ifdef::env-site,env-yard[]
+ifdef::env-github[]
 :url-rel-file-base: {url-repo}/blob/HEAD/
 :url-rel-tree-base: {url-repo}/tree/HEAD/
 endif::[]
