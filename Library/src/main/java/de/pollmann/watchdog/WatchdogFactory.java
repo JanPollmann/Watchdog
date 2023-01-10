@@ -2,6 +2,8 @@ package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.tasks.WatchableWithInput;
+import de.pollmann.watchdog.util.statistics.NoStatistics;
+import de.pollmann.watchdog.util.statistics.Statistics;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +14,7 @@ import java.util.concurrent.ThreadFactory;
 public class WatchdogFactory {
 
   private final WatchdogWorker worker;
+  private final Statistics statistics = new NoStatistics();
 
   public WatchdogFactory(ExecutorService watchdogPool, ExecutorService workerPool) {
     worker = new WatchdogWorker(watchdogPool, workerPool);
@@ -38,19 +41,27 @@ public class WatchdogFactory {
   }
 
   public <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, WatchableWithInput<IN, OUT> watchable) {
-    return RepeatableTaskWithInput.create(worker, timeoutInMilliseconds, watchable);
+    return createRepeated(timeoutInMilliseconds, false, watchable);
   }
 
   public <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, Watchable<OUT> watchable) {
-    return RepeatableTaskWithoutInput.create(worker, timeoutInMilliseconds, watchable);
+    return createRepeated(timeoutInMilliseconds, false, watchable);
+  }
+
+  public <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, boolean withStatistics, WatchableWithInput<IN, OUT> watchable) {
+    return RepeatableTaskWithInput.create(worker, timeoutInMilliseconds, watchable, withStatistics);
+  }
+
+  public <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, boolean withStatistics, Watchable<OUT> watchable) {
+    return RepeatableTaskWithoutInput.create(worker, timeoutInMilliseconds, watchable, withStatistics);
   }
 
   public Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<?> watchable) {
-    return worker.submitFunctionCall(timeoutInMilliseconds, watchable);
+    return worker.submitFunctionCall(timeoutInMilliseconds, watchable, statistics);
   }
 
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) {
-    return worker.waitForCompletion(timeoutInMilliseconds, watchable);
+    return worker.waitForCompletion(timeoutInMilliseconds, watchable, statistics);
   }
 
 }

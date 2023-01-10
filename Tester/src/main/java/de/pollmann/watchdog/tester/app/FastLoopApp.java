@@ -23,8 +23,8 @@ public abstract class FastLoopApp {
   public FastLoopApp(AppContext appContext) {
     context = appContext;
     coreFactory = new WatchdogFactory("core");
-    // create the main loop callable
-    mainLoop = coreFactory.createRepeated(context.getLoopTimeout(), Watchable.builder(this::loop)
+    // create the main loop callable with enabled statistics
+    mainLoop = coreFactory.createRepeated(context.getLoopTimeout(), true, Watchable.builder(this::loop)
       // register a loop finished listener
       .withResultConsumer(this::onLoopFinished)
       .build()
@@ -40,6 +40,7 @@ public abstract class FastLoopApp {
         Watchable.builder(() -> {
           TaskResult<Integer> result;
           boolean stop = false;
+          double lastLoopsPerSecond = 0;
           // loop as fast as possible
           do {
             if (Thread.interrupted()) {
@@ -47,6 +48,11 @@ public abstract class FastLoopApp {
             }
             // call the main loop once
             result = mainLoop.waitForCompletion();
+            // print statistics (statistics are enabled for the Repeated Task "mainLoop"!)
+            if (lastLoopsPerSecond != mainLoop.getCallsPerSecond()) {
+              lastLoopsPerSecond = mainLoop.getCallsPerSecond();
+              System.out.printf("Current loops per second: %.2f%n", lastLoopsPerSecond);
+            }
             // The main loop continues as long as this condition is true
             if (result.getCode() != ResultCode.OK || !Objects.equals(result.getResult(), OK)) {
               stop = true;

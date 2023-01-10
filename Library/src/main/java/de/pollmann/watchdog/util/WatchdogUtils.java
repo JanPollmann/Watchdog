@@ -1,4 +1,4 @@
-package de.pollmann.watchdog;
+package de.pollmann.watchdog.util;
 
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.tasks.WatchableWithInput;

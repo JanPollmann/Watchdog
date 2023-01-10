@@ -1,6 +1,8 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.util.statistics.Memento;
+import de.pollmann.watchdog.util.statistics.Statistics;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -18,15 +20,16 @@ class WatchdogWorker {
     this.workerPool = Objects.requireNonNull(workerPool);
   }
 
-  public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable) {
+  public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) {
     return watchdogPool.submit(() ->
-      waitForCompletion(timeoutInMilliseconds, watchable)
+      waitForCompletion(timeoutInMilliseconds, watchable, statistics)
     );
   }
 
-  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) {
+  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) {
     TaskResult<OUT> taskResult;
     try {
+      Memento memento = statistics.beginCall();
       Future<OUT> future = workerPool.submit(watchable);
       OUT result;
       if (timeoutInMilliseconds != 0) {
@@ -34,6 +37,7 @@ class WatchdogWorker {
       } else {
         result = future.get();
       }
+      statistics.stopCall(memento);
       // !future.isDone() cannot happen!
       taskResult = TaskResult.createOK(result);
     } catch (TimeoutException timeoutException) {

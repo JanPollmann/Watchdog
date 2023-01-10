@@ -69,7 +69,7 @@ include::{path-example-1-AppContext}[]
 ----
 endif::[]
 
-Fore more examples please refer to the UnitTests: +
+You can find more examples in the UnitTests: +
 ifdef::env-github[]
 {url-rel-file-base}{path-test}
 endif::[]

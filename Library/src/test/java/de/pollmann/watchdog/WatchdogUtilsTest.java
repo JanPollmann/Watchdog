@@ -1,6 +1,7 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.util.WatchdogUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
