@@ -15,32 +15,74 @@ public abstract class FastLoopApp {
   protected final AppContext context;
 
   private final WatchdogFactory coreFactory;
+  /**
+   * create the main loop callable. The result is the exit code. The main loop continues as long as the exit code is {@value OK} and the result code is {@link ResultCode#OK}
+   */
   private final RepeatableTaskWithoutInput<Integer> mainLoop;
 
   public FastLoopApp(AppContext appContext) {
     context = appContext;
     coreFactory = new WatchdogFactory("core");
-    mainLoop = coreFactory.createRepeated(context.getLoopTimeout(), Watchable.builder(this::loop).build());
-  }
-
-  public final void start() {
-    coreFactory.waitForCompletion(0,
-        Watchable.builder(() -> {
-          boolean stop = false;
-          while (!stop) {
-            if (Thread.interrupted()) {
-              throw new InterruptedException();
-            }
-            TaskResult<Integer> result = mainLoop.waitForCompletion();
-            if (result.getCode() != ResultCode.OK || !Objects.equals(result.getResult(), OK)) {
-              stop = true;
-            }
-          }
-        }).
-      build()
+    // create the main loop callable
+    mainLoop = coreFactory.createRepeated(context.getLoopTimeout(), Watchable.builder(this::loop)
+      // register a loop finished listener
+      .withResultConsumer(this::onLoopFinished)
+      .build()
     );
   }
 
-  public abstract Integer loop();
+  /**
+   * Start the application
+   */
+  public final void start() {
+    // timeout 0: no timeout, block as long as the task takes
+    coreFactory.waitForCompletion(0,
+        Watchable.builder(() -> {
+          TaskResult<Integer> result;
+          boolean stop = false;
+          // loop as fast as possible
+          do {
+            if (Thread.interrupted()) {
+              throw new InterruptedException();
+            }
+            // call the main loop once
+            result = mainLoop.waitForCompletion();
+            // The main loop continues as long as this condition is true
+            if (result.getCode() != ResultCode.OK || !Objects.equals(result.getResult(), OK)) {
+              stop = true;
+            }
+          } while (!stop);
+          return result.getResult();
+        })
+        // register an exit listener
+        .withResultConsumer(this::onExit)
+        .build()
+    );
+  }
+
+  /**
+   * The main loop continues as long as the exit code is {@value OK} and no timeout ({@link ResultCode#TIMEOUT}) or error ({@link ResultCode#ERROR}) occurred
+   *
+   * @return the exit code
+   */
+  public abstract Integer loop() throws Exception;
+
+  /**
+   * The main loop result containing the last exit code of {@link #loop()}
+   *
+   * @param taskResult the result of the main loop (NOT the taskResult of {@link #loop()}!)
+   */
+  public void onExit(TaskResult<Integer> taskResult) {
+
+  }
+
+  /**
+   * Listener for each execution of {@link #loop()}
+   *
+   * @param taskResult the taskResult of {@link #loop()}
+   */
+  public void onLoopFinished(TaskResult<Integer> taskResult) {
+
+  }
 
 }
