@@ -27,7 +27,15 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_OK_submit() throws InterruptedException {
+  void runnable_noTimeout_OK() {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(0, Watchable.builder(() -> {}).build());
+
+    assertRunnableResultWithOk(result);
+  }
+
+  @Test
+  @Timeout(2)
+  void runnable_OK_submit() {
     ResultCounter<Object> resultCounter = new ResultCounter<>();
     assertRunnableResultWithOk(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {})));
   }

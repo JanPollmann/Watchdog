@@ -11,6 +11,7 @@ ifdef::env-github[]
 endif::[]
 :path-example-1-FastLoopApp: Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java
 :path-example-1-AppContext: Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java
+:path-test: Library/src/test/java/de/pollmann/watchdog/
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
@@ -38,6 +39,7 @@ TODO publishing
 ** a terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
 * The timeout is specified in milliseconds
 ** a timeout of 0 ms will be handled as `no timeout`
+* For not repeated function calls, the input of a function/consumer is passed in the constructor!
 ====
 
 == Example
@@ -64,3 +66,10 @@ include::{path-example-1-AppContext}[]
 ----
 endif::[]
 
+Fore more examples please refer to the UnitTests: +
+ifdef::env-github[]
+{url-rel-file-base}{path-test}
+endif::[]
+ifndef::env-github[]
+{path-test}
+endif::[]
