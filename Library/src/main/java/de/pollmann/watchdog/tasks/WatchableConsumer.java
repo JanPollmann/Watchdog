@@ -1,30 +1,47 @@
 package de.pollmann.watchdog.tasks;
 
-import de.pollmann.watchdog.TaskResult;
+import java.util.Objects;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
+class WatchableConsumer<IN> extends WatchableWithResultConsumer<Object> implements WatchableWithInput<IN, Object> {
 
-public class WatchableConsumer<IN> extends WatchableFunction<IN, Object> {
+  private final ExceptionConsumer<IN> consumer;
+  private final IN input;
 
-  public WatchableConsumer(Consumer<TaskResult<Object>> resultConsumer, Function<IN, Object> function, IN input) {
-    super(resultConsumer, function, input);
+  private WatchableConsumer(WatchableConsumerBuilder<IN> builder) {
+    super(builder);
+    consumer = Objects.requireNonNull(builder.task);
+    input = builder.input;
   }
 
-  public WatchableConsumer(Function<IN, Object> function, IN input) {
-    super(function, input);
+  @Override
+  public Object call() throws Exception {
+    consumer.accept(input);
+    return null;
   }
 
-  public WatchableConsumer(Consumer<TaskResult<Object>> resultConsumer, Consumer<IN> consumer, IN input) {
-    this(resultConsumer, in -> {
-      consumer.accept(in); return null;
-    }, input);
+  @Override
+  public Watchable<Object> newInput(IN newValue) {
+    return new WatchableConsumerBuilder<>(consumer)
+      .withResultConsumer(resultConsumer)
+      .withInput(newValue)
+      .build();
   }
 
-  public WatchableConsumer(Consumer<IN> consumer, IN input) {
-    this(in -> {
-      consumer.accept(in); return null;
-    }, input);
+  static <IN> WatchableConsumerBuilder<IN> builder(ExceptionConsumer<IN> task) {
+    return new WatchableConsumerBuilder<>(task);
+  }
+
+  static class WatchableConsumerBuilder<IN> extends WatchableBuilder<IN, Object, ExceptionConsumer<IN>, WatchableWithInput<IN, Object>> {
+
+    protected WatchableConsumerBuilder(ExceptionConsumer<IN> task) {
+      super(task);
+    }
+
+    @Override
+    public WatchableWithInput<IN, Object> build() {
+      return new WatchableConsumer<>(this);
+    }
+
   }
 
 }

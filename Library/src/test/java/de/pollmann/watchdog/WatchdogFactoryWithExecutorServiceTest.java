@@ -1,9 +1,8 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.WatchableCallable;
-import de.pollmann.watchdog.tasks.WatchableRunnable;
-import de.pollmann.watchdog.testsupport.WatchableCallableForTest;
-import de.pollmann.watchdog.testsupport.WatchableRunnableForTest;
+import de.pollmann.watchdog.tasks.ExceptionRunnable;
+import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.testsupport.ResultCounter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -19,23 +18,24 @@ class WatchdogFactoryWithExecutorServiceTest {
   void runnable_endlessLoop_TIMEOUT() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, () -> {
+    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       while (true) {
         // well ...
       }
-    }));
+    }).build()));
   }
 
   @Test
   @Timeout(2)
   void nonBlocking_runnable_endlessLoop_TIMEOUT() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
 
-    assertTimeout(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       while (true) {
         // well ...
       }
-    }).getLastResult());
+    })));
   }
 
   @Test
@@ -43,42 +43,43 @@ class WatchdogFactoryWithExecutorServiceTest {
   void callable_endlessLoop_TIMEOUT() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, () -> {
+    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       boolean continueLoop = true;
       while (continueLoop) {
         // well ...
       }
       return null;
-    }));
+    }).build()));
   }
 
   @Test
   @Timeout(2)
   void nonBlocking_callable_endlessLoop_TIMEOUT() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
 
-    assertTimeout(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       boolean continueLoop = true;
       while (continueLoop) {
         // well ...
       }
       return null;
-    }).getLastResult());
+    })));
   }
 
   @Test
   @Timeout(4)
   void runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    WatchableRunnable runnable = () -> {
+    Watchable<Object> runnable = Watchable.builder(() -> {
       while (true) {
         // well ...
       }
-    };
+    }).build();
 
     assertTimeout(watchdogFactory.waitForCompletion(1000, runnable));
 
-    runnable = () -> {
+    runnable = Watchable.builder(() -> {
       int i = 1;
       while (i > 0) {
         i++;
@@ -86,7 +87,7 @@ class WatchdogFactoryWithExecutorServiceTest {
           i = 1;
         }
       }
-    };
+    }).build();
 
     assertTimeout(watchdogFactory.waitForCompletion(1000, runnable));
 
@@ -97,13 +98,14 @@ class WatchdogFactoryWithExecutorServiceTest {
   @Timeout(4)
   void nonBlocking_runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    WatchableRunnable runnable = () -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+    ExceptionRunnable runnable = () -> {
       while (true) {
         // well ...
       }
     };
 
-    assertTimeout(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, runnable).getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(runnable)));
 
     runnable = () -> {
       int i = 1;
@@ -115,16 +117,16 @@ class WatchdogFactoryWithExecutorServiceTest {
       }
     };
 
-    assertTimeout(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, runnable).getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(runnable)));
 
-    assertTimeout(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, runnable).getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(runnable)));
   }
 
   @Test
   @Timeout(4)
   void callable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    WatchableCallable<?> callable = () -> {
+    Callable<?> callable = () -> {
       boolean continueLoop = true;
       while (continueLoop) {
         // well ...
@@ -132,7 +134,7 @@ class WatchdogFactoryWithExecutorServiceTest {
       return null;
     };
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, callable));
+    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
 
     callable = () -> {
       int i = 1;
@@ -145,15 +147,16 @@ class WatchdogFactoryWithExecutorServiceTest {
       return null;
     };
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, callable));
+    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, callable));
+    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
   }
 
   @Test
   @Timeout(4)
   void nonBlocking_callable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
+    ResultCounter<Integer> resultCounter = new ResultCounter<>();
     Callable<Integer> callable = () -> {
       boolean continueLoop = true;
       while (continueLoop) {
@@ -162,7 +165,7 @@ class WatchdogFactoryWithExecutorServiceTest {
       return null;
     };
 
-    assertTimeout(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, callable).getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(callable)));
 
     callable = () -> {
       int i = 1;
@@ -175,16 +178,17 @@ class WatchdogFactoryWithExecutorServiceTest {
       return null;
     };
 
-    assertTimeout(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, callable).getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(callable)));
 
-    assertTimeout(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, callable).getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(callable)));
   }
 
   @Test
   @Timeout(6)
   void parallel_runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    WatchableRunnableForTest runnable = new WatchableRunnableForTest(() -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>(this::assertTimeout);
+    ExceptionRunnable runnable = () -> {
       int i = 1;
       while (i > 0) {
         i++;
@@ -192,18 +196,12 @@ class WatchdogFactoryWithExecutorServiceTest {
           i = 1;
         }
       }
-    }) {
-      @Override
-      public void finishedWithResult(TaskResult<Object> result) {
-        super.finishedWithResult(result);
-        assertTimeout(result);
-      }
     };
 
     List<Future<?>> futures = new ArrayList<>();
-    futures.add(watchdogFactory.submitFunctionCall(1000, runnable));
-    futures.add(watchdogFactory.submitFunctionCall(1000, runnable));
-    futures.add(watchdogFactory.submitFunctionCall(1000, runnable));
+    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(runnable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(runnable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(runnable).build()));
 
     while (!futuresFinished(futures)) {
       try {
@@ -218,7 +216,8 @@ class WatchdogFactoryWithExecutorServiceTest {
   @Timeout(6)
   void parallel_callable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
-    WatchableCallableForTest callable = new WatchableCallableForTest(() -> {
+    ResultCounter<Integer> resultCounter = new ResultCounter<>(this::assertTimeout);
+    Callable<Integer> callable = () -> {
       int i = 1;
       while (i > 0) {
         i++;
@@ -227,18 +226,12 @@ class WatchdogFactoryWithExecutorServiceTest {
         }
       }
       return null;
-    }) {
-      @Override
-      public void finishedWithResult(TaskResult<Integer> result) {
-        super.finishedWithResult(result);
-        assertTimeout(result);
-      }
     };
 
     List<Future<?>> futures = new ArrayList<>();
-    futures.add(watchdogFactory.submitFunctionCall(1000, callable));
-    futures.add(watchdogFactory.submitFunctionCall(1000, callable));
-    futures.add(watchdogFactory.submitFunctionCall(1000, callable));
+    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(callable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(callable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(callable).build()));
 
     while (!futuresFinished(futures)) {
       try {

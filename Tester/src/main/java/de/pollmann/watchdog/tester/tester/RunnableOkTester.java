@@ -2,12 +2,10 @@ package de.pollmann.watchdog.tester.tester;
 
 import de.pollmann.watchdog.RepeatableTaskWithoutInput;
 import de.pollmann.watchdog.ResultCode;
-import de.pollmann.watchdog.TaskResult;
 import de.pollmann.watchdog.WatchdogFactory;
-import de.pollmann.watchdog.tasks.WatchableRunnable;
+import de.pollmann.watchdog.tasks.Watchable;
 
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
 public class RunnableOkTester extends CountableTest {
 
@@ -17,17 +15,14 @@ public class RunnableOkTester extends CountableTest {
 
   public RunnableOkTester(WatchdogFactory factory) {
     super();
-    repeatable = factory.createRepeated(500, new WatchableRunnable() {
-      @Override
-      public void run() throws Exception {
-        executionCounter.incrementAndGet();
-      }
+    repeatable = factory.createRepeated(500, Watchable.builder(this::run)
+      .withResultConsumer(result -> this.taskFinished(result, ResultCode.OK))
+      .build()
+    );
+  }
 
-      @Override
-      public Consumer<TaskResult<Object>> getResultConsumer() {
-        return result -> taskFinished(result, ResultCode.OK);
-      }
-    });
+  public void run() {
+    executionCounter.incrementAndGet();
   }
 
   @Override

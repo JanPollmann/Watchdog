@@ -1,11 +1,15 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.tasks.WatchableRunnable;
-import de.pollmann.watchdog.testsupport.*;
+import de.pollmann.watchdog.tasks.ExceptionFunction;
+import de.pollmann.watchdog.tasks.ExceptionRunnable;
+import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.testsupport.ResultCounter;
+import de.pollmann.watchdog.testsupport.TestException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -16,7 +20,7 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void runnable_OK() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {});
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {}).build());
 
     assertRunnableResultWithOk(result);
   }
@@ -24,19 +28,18 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void runnable_OK_submit() throws InterruptedException {
-    WatchableRunnableForTest runnable = WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {});
-
-    assertRunnableResultWithOk(runnable.getLastResult());
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+    assertRunnableResultWithOk(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {})));
   }
 
   @Test
   @Timeout(2)
   void callable_out50_OK() {
     int returned = 50;
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(500);
       return returned;
-    });
+    }).build());
 
     assertCallableWithOkAndResult(result, returned);
   }
@@ -45,19 +48,21 @@ class WatchdogFactoryTest {
   @Timeout(2)
   void callable_out50_OK_submit() {
     int returned = 50;
-    WatchableCallableForTest callable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    ResultCounter<Integer> resultCounter = new ResultCounter<>();
+    Callable<Integer> consumer = () -> {
       Thread.sleep(500);
       return returned;
-    });
-
-    assertCallableWithOkAndResult(callable.getLastResult(), returned);
+    };
+    assertCallableWithOkAndResult(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(consumer)), returned);
   }
 
   @Test
   @Timeout(2)
   void consumer_in50_OK() {
     int input = 50;
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, in -> {}, input);
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(in -> {})
+      .withInput(input)
+      .build());
 
     assertRunnableResultWithOk(result);
   }
@@ -67,7 +72,10 @@ class WatchdogFactoryTest {
   void consumer_in50_OK_withResultConsumer() {
     int input = 50;
     AtomicBoolean called = new AtomicBoolean(false);
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, res -> called.set(true), in -> {}, input);
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(in -> {})
+      .withInput(input)
+      .withResultConsumer(res -> called.set(true))
+      .build());
 
     Assertions.assertTrue(called.get());
     assertRunnableResultWithOk(result);
@@ -77,16 +85,20 @@ class WatchdogFactoryTest {
   @Timeout(2)
   void consumer_in50_out50_OK_submit() {
     int input = 50;
-    WatchableConsumerForTest function = WatchableConsumerForTest.submitWatchable(watchdogFactory, 1000, in -> {}, input);
-
-    assertRunnableResultWithOk(function.getLastResult());
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+    assertRunnableResultWithOk(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(in -> {})
+            .withInput(input)
+    ));
   }
 
   @Test
   @Timeout(2)
   void function_in50_out50_OK() {
     int input = 50;
-    TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, in -> in, input);
+    TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, Watchable.builder((ExceptionFunction<Integer, Integer>) in -> in)
+      .withInput(input)
+      .build()
+    );
 
     assertCallableWithOkAndResult(result, input);
   }
@@ -96,7 +108,11 @@ class WatchdogFactoryTest {
   void function_in50_out50_OK_withResultConsumer() {
     int input = 50;
     AtomicBoolean called = new AtomicBoolean(false);
-    TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, res -> called.set(true), in -> in, input);
+    TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, Watchable.builder((ExceptionFunction<Integer, Integer>) in -> in)
+      .withInput(input)
+      .withResultConsumer(res -> called.set(true))
+      .build()
+    );
 
     Assertions.assertTrue(called.get());
     assertCallableWithOkAndResult(result, input);
@@ -106,17 +122,17 @@ class WatchdogFactoryTest {
   @Timeout(2)
   void function_in50_out50_OK_submit() {
     int input = 50;
-    WatchableFunctionForTest function = WatchableFunctionForTest.submitWatchable(watchdogFactory,1000, in -> in, input);
-
-    assertCallableWithOkAndResult(function.getLastResult(), input);
+    ResultCounter<Integer> resultCounter = new ResultCounter<>();
+    assertCallableWithOkAndResult(resultCounter.submit(watchdogFactory,1000, Watchable.builder((ExceptionFunction<Integer, Integer>) in -> in)
+      .withInput(input)), input);
   }
 
   @Test
   @Timeout(2)
   void runnable_TIMEOUT() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(4000);
-    });
+    }).build());
 
     assertTimeout(result);
   }
@@ -124,20 +140,20 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void runnable_TIMEOUT_submit() {
-    WatchableRunnableForTest runnable = WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {
-      Thread.sleep(4000);
-    });
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
 
-    assertTimeout(runnable.getLastResult());
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
+      Thread.sleep(4000);
+    })));
   }
 
   @Test
   @Timeout(2)
   void callable_TIMEOUT() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(4000);
       return null;
-    });
+    }).build());
 
     assertTimeout(result);
   }
@@ -145,20 +161,19 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void callable_TIMEOUT_submit() {
-    WatchableCallableForTest runnable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+    assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       Thread.sleep(4000);
       return null;
-    });
-
-    assertTimeout(runnable.getLastResult());
+    })));
   }
 
   @Test
   @Timeout(2)
   void runnable_runtimeException_ERROR() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       throw new RuntimeException();
-    });
+    }).build());
 
     assertExecutionException(result);
     Assertions.assertTrue(result.getErrorReason() instanceof RuntimeException);
@@ -167,10 +182,10 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void runnable_nullPointerException_ERROR_submit() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Object object = null;
       String s = object.toString();
-    });
+    }).build());
 
     assertNullPointerException(result);
   }
@@ -178,19 +193,20 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void runnable_nullPointerException_ERROR() {
-    assertNullPointerException(WatchableRunnableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+    assertNullPointerException(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       Object object = null;
       String s = object.toString();
-    }).getLastResult());
+    })));
   }
 
   @Test
   @Timeout(2)
   void callable_nullPointerException_ERROR() {
-    TaskResult<String> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<String> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Object object = null;
       return object.toString();
-    });
+    }).build());
 
     assertNullPointerException(result);
   }
@@ -198,20 +214,21 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void callable_nullPointerException_ERROR_submit() {
-    assertNullPointerException(WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+    assertNullPointerException(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       Object object = null;
       String s = object.toString();
       return 50;
-    }).getLastResult());
+    })));
   }
 
   @Test
   @Timeout(2)
   void runnable_testException_ERROR() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, () -> {
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(500);
       throw new TestException();
-    });
+    }).build());
 
     assertErrorWithTestException(result);
   }
@@ -219,22 +236,26 @@ class WatchdogFactoryTest {
   @Test
   @Timeout(2)
   void runnable_testException_ERROR_submit() {
-    WatchableCallableForTest callable = WatchableCallableForTest.submitWatchable(watchdogFactory, 1000, () -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>();
+
+    assertErrorWithTestException(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       Thread.sleep(500);
       throw new TestException();
-    });
-
-    assertErrorWithTestException(callable.getLastResult());
+    })));
   }
 
   @Test
   void runnable_userTriesEverythingToSabotageTheTimeout_TIMEOUT() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, new Sabotage());
+    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, createSabotage());
 
     assertTimeout(result);
   }
 
-  private static class Sabotage implements WatchableRunnable {
+  private Watchable<Object> createSabotage() {
+    return Watchable.builder(new Sabotage()).build();
+  }
+
+  private static class Sabotage implements ExceptionRunnable {
     @Override
     public void run() {
       try {
@@ -247,15 +268,6 @@ class WatchdogFactoryTest {
         }
       } catch (Throwable throwable) {
         run();
-      }
-    }
-
-    @Override
-    public Object call() throws Exception {
-      try {
-        return WatchableRunnable.super.call();
-      } catch (Throwable throwable) {
-        return call();
       }
     }
   }

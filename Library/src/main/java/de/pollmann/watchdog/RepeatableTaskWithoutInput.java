@@ -1,8 +1,6 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
-import de.pollmann.watchdog.tasks.WatchableCallable;
-import de.pollmann.watchdog.tasks.WatchableRunnable;
 
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -18,12 +16,9 @@ public class RepeatableTaskWithoutInput<OUT> extends RepeatableTask {
     this.timeoutInMilliseconds = timeoutInMilliseconds;
   }
 
-  static RepeatableTaskWithoutInput<Object> create(WatchdogWorker worker, long timeoutInMilliseconds, WatchableRunnable repeated) {
-    return new RepeatableTaskWithoutInput<>(worker, timeoutInMilliseconds, repeated);
-  }
-
-  static <OUT> RepeatableTaskWithoutInput<OUT> create(WatchdogWorker worker, long timeoutInMilliseconds, WatchableCallable<OUT> repeated) {
-    return new RepeatableTaskWithoutInput<>(worker, timeoutInMilliseconds, repeated);
+  static <OUT> RepeatableTaskWithoutInput<OUT> create(WatchdogWorker worker, long timeoutInMilliseconds, Watchable<OUT> watchable) {
+    WatchdogUtils.throwExceptionIfInputRequired(watchable, "Cannot build a RepeatableTaskWithoutInput for a watchable with input.");
+    return new RepeatableTaskWithoutInput<>(worker, timeoutInMilliseconds, watchable);
   }
 
   public Future<?> submitFunctionCall() {

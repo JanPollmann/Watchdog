@@ -1,50 +1,46 @@
 package de.pollmann.watchdog.tasks;
 
-import de.pollmann.watchdog.TaskResult;
+import java.util.Objects;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
+class WatchableFunction<IN, OUT> extends WatchableWithResultConsumer<OUT> implements WatchableWithInput<IN, OUT> {
 
-public class WatchableFunction<IN, OUT> implements Watchable<OUT> {
+  private final ExceptionFunction<IN, OUT> function;
+  private final IN input;
 
-  protected final IN input;
-  protected final Function<IN,OUT> function;
-
-  private Consumer<TaskResult<OUT>> resultConsumer;
-
-  public WatchableFunction(Consumer<TaskResult<OUT>> resultConsumer, Function<IN, OUT> function, IN input) {
-    this.function = function;
-    this.input = input;
-    setResultConsumer(resultConsumer);
-  }
-
-  public WatchableFunction(Function<IN, OUT> function, IN input) {
-    this(null, function, input);
+  private WatchableFunction(WatchableFunctionBuilder<IN, OUT> builder) {
+    super(builder);
+    this.function = Objects.requireNonNull(builder.task);
+    this.input = builder.input;
   }
 
   @Override
   public OUT call() throws Exception {
-    return apply(input);
-  }
-
-  public void setResultConsumer(Consumer<TaskResult<OUT>> resultConsumer) {
-    this.resultConsumer = resultConsumer;
-  }
-
-  @Override
-  public Consumer<TaskResult<OUT>> getResultConsumer() {
-    return resultConsumer;
-  }
-
-  public OUT apply(IN input) throws Exception {
     return function.apply(input);
   }
 
-  public WatchableFunction<IN, OUT> clone(IN newInput) {
-    return new WatchableFunction<>(resultConsumer, function, newInput);
+  @Override
+  public Watchable<OUT> newInput(IN newValue) {
+    return new WatchableFunctionBuilder<>(function)
+      .withResultConsumer(resultConsumer)
+      .withInput(newValue)
+      .build();
   }
 
-  protected static void emptyResultConsumer(TaskResult<?> result) {
-    // no op
+  static <IN, OUT> WatchableFunctionBuilder<IN, OUT> builder(ExceptionFunction<IN, OUT> task) {
+    return new WatchableFunctionBuilder<>(task);
   }
+
+  static class WatchableFunctionBuilder<IN, OUT> extends WatchableBuilder<IN, OUT, ExceptionFunction<IN, OUT>, WatchableWithInput<IN, OUT>> {
+
+    protected WatchableFunctionBuilder(ExceptionFunction<IN, OUT> task) {
+      super(task);
+    }
+
+    @Override
+    public WatchableWithInput<IN, OUT> build() {
+      return new WatchableFunction<>(this);
+    }
+
+  }
+
 }

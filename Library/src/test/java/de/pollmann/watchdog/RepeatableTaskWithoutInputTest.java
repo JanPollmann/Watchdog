@@ -1,8 +1,8 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.testsupport.ResultCounter;
 import de.pollmann.watchdog.testsupport.StoreResult;
-import de.pollmann.watchdog.testsupport.WatchableCallableForTest;
-import de.pollmann.watchdog.testsupport.WatchableRunnableForTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -18,37 +18,31 @@ class RepeatableTaskWithoutInputTest {
   @Test
   @Timeout(4)
   void runnable_ok() {
-    WatchableRunnableForTest watchableRunnableForTest = new WatchableRunnableForTest(() -> {
-      Thread.sleep(50);
-    }) {
-      @Override
-      public void finishedWithResult(TaskResult<Object> result) {
-        super.finishedWithResult(result);
-        Assertions.assertEquals(ResultCode.OK, result.getCode());
-      }
-    };
-    RepeatableTaskWithoutInput<Object> repeated = create(100, watchableRunnableForTest);
+    ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
+      Assertions.assertEquals(ResultCode.OK, result.getCode());
+    });
 
-    assertRepeated(watchableRunnableForTest, repeated, 20);
+    RepeatableTaskWithoutInput<Object> repeated = createRunnable(100, resultCounter.createDecoratedRunnable(() -> {
+      Thread.sleep(50);
+    }));
+
+    assertRepeated(resultCounter, repeated, 20);
   }
 
   @Test
   @Timeout(4)
   void callable_ok() {
-    WatchableCallableForTest watchableCallableForTest = new WatchableCallableForTest(() -> {
+    ResultCounter<Integer> resultCounter = new ResultCounter<>(result -> {
+      Assertions.assertEquals(ResultCode.OK, result.getCode());
+      Assertions.assertEquals(42, result.getResult());
+    });
+
+    RepeatableTaskWithoutInput<Integer> repeated = createCallable(100, resultCounter.createDecoratedCallable(() -> {
       Thread.sleep(50);
       return 42;
-    }) {
-      @Override
-      public void finishedWithResult(TaskResult<Integer> result) {
-        super.finishedWithResult(result);
-        Assertions.assertEquals(ResultCode.OK, result.getCode());
-        Assertions.assertEquals(42, result.getResult());
-      }
-    };
-    RepeatableTaskWithoutInput<Integer> repeated = create(100, watchableCallableForTest);
+    }));
 
-    assertRepeated(watchableCallableForTest, repeated, 20);
+    assertRepeated(resultCounter, repeated, 20);
   }
 
   private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithoutInput<?> repeated, int loops) {
@@ -81,11 +75,11 @@ class RepeatableTaskWithoutInputTest {
     return true;
   }
 
-  private RepeatableTaskWithoutInput<Object> create(long timeoutInMilliseconds, WatchableRunnableForTest runnable) {
+  private RepeatableTaskWithoutInput<Object> createRunnable(long timeoutInMilliseconds, Watchable<Object> runnable) {
     return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, runnable);
   }
 
-  private RepeatableTaskWithoutInput<Integer> create(long timeoutInMilliseconds, WatchableCallableForTest callable) {
+  private RepeatableTaskWithoutInput<Integer> createCallable(long timeoutInMilliseconds, Watchable<Integer> callable) {
     return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, callable);
   }
 

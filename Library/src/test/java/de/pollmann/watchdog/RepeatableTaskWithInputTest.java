@@ -1,6 +1,8 @@
 package de.pollmann.watchdog;
 
-import de.pollmann.watchdog.testsupport.*;
+import de.pollmann.watchdog.tasks.WatchableWithInput;
+import de.pollmann.watchdog.testsupport.ResultCounter;
+import de.pollmann.watchdog.testsupport.StoreResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -18,12 +20,15 @@ class RepeatableTaskWithInputTest {
   @Timeout(4)
   void consumer_ok() {
     AtomicInteger sum = new AtomicInteger();
-    WatchableConsumerForTest watchableConsumerForTest = new WatchableConsumerForTest(result -> {
+    ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
-    }, sum::addAndGet, 0);
-    RepeatableTaskWithInput<Integer, Object> repeated = create(100, watchableConsumerForTest);
+    });
 
-    assertRepeated(watchableConsumerForTest, repeated, 10);
+    RepeatableTaskWithInput<Integer, Object> repeated = createConsumer(100, resultCounter.createDecoratedConsumer(
+      sum::addAndGet
+    ));
+
+    assertRepeated(resultCounter, repeated, 10);
     Assertions.assertEquals(90, sum.get());
   }
 
@@ -31,16 +36,17 @@ class RepeatableTaskWithInputTest {
   @Timeout(4)
   void function_ok() {
     AtomicInteger sum = new AtomicInteger();
-    WatchableFunctionForTest watchableFunctionForTest = new WatchableFunctionForTest(result -> {
+    ResultCounter<Integer> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
       Assertions.assertEquals(42, result.getResult());
-    }, input -> {
+    });
+
+    RepeatableTaskWithInput<Integer, Integer> repeated = createFunction(100, resultCounter.createDecoratedFunction(input -> {
       sum.addAndGet(input);
       return 42;
-    }, 0);
-    RepeatableTaskWithInput<Integer, Integer> repeated = create(100, watchableFunctionForTest);
+    }));
 
-    assertRepeated(watchableFunctionForTest, repeated, 11);
+    assertRepeated(resultCounter, repeated, 11);
     Assertions.assertEquals(110, sum.get());
   }
 
@@ -74,11 +80,11 @@ class RepeatableTaskWithInputTest {
     return true;
   }
 
-  private RepeatableTaskWithInput<Integer, Object> create(long timeoutInMilliseconds, WatchableConsumerForTest consumer) {
+  private RepeatableTaskWithInput<Integer, Object> createConsumer(long timeoutInMilliseconds, WatchableWithInput<Integer, Object> consumer) {
     return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, consumer);
   }
 
-  private RepeatableTaskWithInput<Integer, Integer> create(long timeoutInMilliseconds, WatchableFunctionForTest function) {
+  private RepeatableTaskWithInput<Integer, Integer> createFunction(long timeoutInMilliseconds, WatchableWithInput<Integer, Integer> function) {
     return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, function);
   }
 

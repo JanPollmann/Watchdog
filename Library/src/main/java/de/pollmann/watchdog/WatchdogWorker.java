@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 class WatchdogWorker {
 
@@ -42,10 +41,7 @@ class WatchdogWorker {
     } catch (Throwable throwable) {
       taskResult = TaskResult.createError(throwable);
     }
-    Consumer<TaskResult<OUT>> consumer = watchable.getResultConsumer();
-    if (consumer != null) {
-      consumer.accept(taskResult);
-    }
+    watchable.taskFinished(taskResult);
     return taskResult;
   }
 
