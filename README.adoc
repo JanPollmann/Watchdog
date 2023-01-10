@@ -43,8 +43,11 @@ TODO publishing
 ====
 
 == Example
-Just implement `loop` +
-Remark: A timeout of 0 ms will be handled as `no timeout`
+Just implement `loop`. Remarks:
+
+* A timeout of 0 ms will be handled as `no timeout`
+* both tasks have a `ResultConsumer` registered, but that's an optional feature
+
 ifdef::env-github[]
 {url-rel-file-base}{path-example-1-FastLoopApp}
 endif::[]
