@@ -1,5 +1,6 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.util.statistics.Memento;
 import de.pollmann.watchdog.util.statistics.Statistics;
@@ -27,28 +28,40 @@ class WatchdogWorker {
   }
 
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
-    TaskResult<OUT> taskResult;
-    Memento memento = statistics.beginCall();
-    Future<OUT> future = workerPool.submit(watchable);
-    try {
-      OUT result;
-      if (timeoutInMilliseconds != 0) {
-        result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
-      } else {
-        result = future.get();
+    TaskResult<OUT> taskResult = startWatchable(watchable);
+    if (taskResult == null) {
+      Memento memento = statistics.beginCall();
+      try {
+        Future<OUT> future = workerPool.submit(watchable);
+        OUT result;
+        if (timeoutInMilliseconds != 0) {
+          result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+        } else {
+          result = future.get();
+        }
+        // !future.isDone() cannot happen!
+        taskResult = TaskResult.createOK(watchable, result);
+      } catch (TimeoutException timeoutException) {
+        taskResult = TaskResult.createTimeout(watchable, timeoutException);
+      } catch (Throwable throwable) {
+        taskResult = TaskResult.createError(watchable, throwable);
+      } finally {
+        watchable.stop();
+        statistics.stopCall(memento);
       }
-      // !future.isDone() cannot happen!
-      taskResult = TaskResult.createOK(watchable, result);
-    } catch (TimeoutException timeoutException) {
-      taskResult = TaskResult.createTimeout(watchable, timeoutException);
-    } catch (Throwable throwable) {
-      taskResult = TaskResult.createError(watchable, throwable);
-    } finally {
-      watchable.stop();
-      statistics.stopCall(memento);
     }
     watchable.taskFinished(taskResult);
     return taskResult;
+
+  }
+
+  private <OUT> TaskResult<OUT> startWatchable(Watchable<OUT> watchable) {
+    try {
+      watchable.start();
+    } catch (WatchableNotRepeatableException watchableNotRepeatableException) {
+      return TaskResult.createError(watchable, watchableNotRepeatableException);
+    }
+    return null;
   }
 
   public boolean isTerminated() {

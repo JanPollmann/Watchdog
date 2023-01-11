@@ -1,6 +1,8 @@
 package de.pollmann.watchdog.tasks;
 
 import de.pollmann.watchdog.WatchdogFactory;
+import de.pollmann.watchdog.exceptions.WatchableInIncorrectState;
+import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -20,6 +22,28 @@ public class WatchableTest {
   @Test
   void buildCallableWithInput_throwsException() {
     Assertions.assertThrows(IllegalArgumentException.class, () -> Watchable.builder(() -> null).withInput(new Object()));
+  }
+
+  @Test
+  void watchableNotStarted_throwsException() {
+    Watchable<?> watchable = Watchable.builder(() -> {}).build();
+
+    Assertions.assertThrows(WatchableInIncorrectState.class, watchable::call);
+
+    Assertions.assertDoesNotThrow(watchable::start);
+  }
+
+  @Test
+  void watchableStarted_call_doesNotThrow_repeatedCallThrows() {
+    Watchable<?> watchable = Watchable.builder(() -> {}).build();
+
+    // start
+    Assertions.assertDoesNotThrow(watchable::start);
+    Assertions.assertThrows(WatchableNotRepeatableException.class, watchable::start);
+    // call
+    Assertions.assertDoesNotThrow(watchable::call);
+    // repeated call
+    Assertions.assertThrows(WatchableInIncorrectState.class, watchable::call);
   }
 
   @Test
