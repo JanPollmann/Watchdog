@@ -21,10 +21,20 @@ Each function call has a timeout and terminates the execution. After each functi
 * `ResultCode.ERROR` An unexpected exception occurred. The exception can be obtained with `TaskResult#getErrorReason`
 
 == Quick start
-This library supports `Runnable`, `Callable`, `Consumer` and `Function`
+[CAUTION]
+====
+still under construction!
+====
+This library supports `Runnable`, `Callable`, `Consumer` and `Function`. If a timeout occurs the worker thread gets `interrupted`. Make sure to handle the interruption properly, otherwise a thread of an `ExecutorService` might (=> your function) end up in an endless loop (=> examples). One possibility to handle an interrupt is the following:
+[source, java]
+----
+if (Thread.interrupted()) {
+  throw new InterruptedException();
+}
+----
 
 === How to
-TODO publishing
+TODO publishing (maven?)
 
 === Setup
 1. Import the `Library` in your project
