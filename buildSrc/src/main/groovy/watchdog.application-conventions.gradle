@@ -30,6 +30,3 @@ build.doFirst {
     }
     println("Build application with javaMainClass: '$conventions.javaMainClass'.")
 }
-
-
-
