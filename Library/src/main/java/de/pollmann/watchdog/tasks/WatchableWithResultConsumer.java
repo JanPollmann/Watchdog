@@ -51,8 +51,8 @@ abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
     try {
       return wrappedCall();
     } finally {
-      stopped.countDown();
       callerThread = null;
+      stopped.countDown();
     }
   }
 
