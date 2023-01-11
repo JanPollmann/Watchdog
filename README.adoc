@@ -70,8 +70,7 @@ include::{path-example-1-AppContext}[]
 ----
 endif::[]
 
-terminate endless loop test
-
+terminate endless loop
 ifdef::env-github[]
 {url-rel-file-base}{path-test-sabotage}
 endif::[]

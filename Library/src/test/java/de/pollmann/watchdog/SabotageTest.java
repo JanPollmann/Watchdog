@@ -59,7 +59,7 @@ public class SabotageTest {
   }
 
   /**
-   * This runnable will block the ExecutorService! But at least we know ... (timeout)
+   * This runnable will block the ExecutorService, not even a timeout occur (thread cannot be interrupted!)
    */
   private static class Sabotage implements ExceptionRunnable {
     @Override
@@ -83,11 +83,11 @@ public class SabotageTest {
     public void run() throws Exception {
       int i = 1;
       while (i > 0) {
-        // add this if clause to your code to stop the runnable if a timeout occurred
+        // add this if to your code to stop the runnable if a timeout occurred
         if (Thread.interrupted()) {
           throw new InterruptedException();
         }
-        // thread sleep does that as well
+        // e.g. thread sleep does that as well
         Thread.sleep(10);
         i++;
         if (i >= 1000) {
