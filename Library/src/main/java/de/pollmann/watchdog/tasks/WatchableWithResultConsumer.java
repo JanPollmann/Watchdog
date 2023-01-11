@@ -1,14 +1,17 @@
 package de.pollmann.watchdog.tasks;
 
 import de.pollmann.watchdog.TaskResult;
-import de.pollmann.watchdog.WatchableNotRepeatableException;
+import de.pollmann.watchdog.exceptions.WatchableInIncorrectState;
+import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 
 import java.util.concurrent.CountDownLatch;
 
 abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
 
+  private static final int INITIAL_COUNT = 2;
+
   protected final ResultConsumer<OUT> resultConsumer;
-  private final CountDownLatch stopped = new CountDownLatch(2);
+  private final CountDownLatch stopped = new CountDownLatch(INITIAL_COUNT);
 
   private volatile Thread callerThread = null;
 
@@ -30,7 +33,7 @@ abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
   }
 
   @Override
-  public void stop() throws InterruptedException {
+  public void stop() throws InterruptedException  {
     if (callerThread != null) {
       try {
         callerThread.interrupt();
@@ -42,23 +45,36 @@ abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
   }
 
   @Override
-  public final synchronized OUT call() throws Exception {
-    if (stopped()) {
-      throw new WatchableNotRepeatableException();
-    }
-    callerThread = Thread.currentThread();
-    stopped.countDown();
-    try {
-      return wrappedCall();
-    } finally {
-      stopped.countDown();
-      callerThread = null;
+  public final OUT call() throws Exception {
+    if (stopped.getCount() == 1) {
+      callerThread = Thread.currentThread();
+      try {
+        return wrappedCall();
+      } finally {
+        callerThread = null;
+        stopped.countDown();
+      }
+    } else {
+      throw new WatchableInIncorrectState(this);
     }
   }
 
   @Override
   public final boolean stopped() {
     return stopped.getCount() == 0;
+  }
+
+  @Override
+  public void start() throws WatchableNotRepeatableException {
+    if (stopped.getCount() == INITIAL_COUNT) {
+      synchronized (this) {
+        if (stopped.getCount() == INITIAL_COUNT) {
+          stopped.countDown();
+          return;
+        }
+      }
+    }
+    throw new WatchableNotRepeatableException(this);
   }
 
   protected abstract OUT wrappedCall() throws Exception;

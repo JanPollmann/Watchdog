@@ -5,6 +5,8 @@ package de.pollmann.watchdog.tasks;
  */
 public interface Repeatable<OUT> {
   /**
+   * Internal support function
+   *
    * {@link Watchable} are copied if required
    */
   WatchableBuilder<?, OUT, ?, ? extends Watchable<OUT>> copy();

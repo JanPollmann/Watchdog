@@ -1,5 +1,6 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 import de.pollmann.watchdog.tasks.ExceptionRunnable;
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.testsupport.ResultCounter;
