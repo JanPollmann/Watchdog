@@ -38,11 +38,11 @@ class WatchdogWorker {
         result = future.get();
       }
       // !future.isDone() cannot happen!
-      taskResult = TaskResult.createOK(result);
+      taskResult = TaskResult.createOK(watchable, result);
     } catch (TimeoutException timeoutException) {
-      taskResult = TaskResult.createTimeout(timeoutException);
+      taskResult = TaskResult.createTimeout(watchable, timeoutException);
     } catch (Throwable throwable) {
-      taskResult = TaskResult.createError(throwable);
+      taskResult = TaskResult.createError(watchable, throwable);
     } finally {
       watchable.stop();
       statistics.stopCall(memento);

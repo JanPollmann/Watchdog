@@ -73,17 +73,6 @@ include::{path-example-1-FastLoopApp}[]
 ----
 endif::[]
 
-Possible `AppContext` with a separated `WachdogFactory` for the whole application (not required).
-ifdef::env-github[]
-{url-rel-file-base}{path-example-1-AppContext}
-endif::[]
-ifndef::env-github[]
-[source, java]
-----
-include::{path-example-1-AppContext}[]
-----
-endif::[]
-
 terminate endless loop
 ifdef::env-github[]
 {url-rel-file-base}{path-test-sabotage}

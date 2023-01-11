@@ -21,6 +21,12 @@ class WatchableCallable<OUT> extends WatchableWithResultConsumer<OUT> {
     return new WatchableCallableBuilder<>(task);
   }
 
+  @Override
+  public WatchableBuilder<?, OUT, ?, ? extends Watchable<OUT>> copy() {
+    return builder(callable)
+      .withResultConsumer(resultConsumer);
+  }
+
   static final class WatchableCallableBuilder<OUT> extends WatchableBuilder<Object, OUT, Callable<OUT>, Watchable<OUT>> {
 
     private WatchableCallableBuilder(Callable<OUT> task) {

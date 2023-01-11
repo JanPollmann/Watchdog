@@ -1,16 +1,20 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.Watchable;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-public class TaskResult<T> {
+public class TaskResult<OUT> {
 
   private final ResultCode code;
   private final ExecutionException executionException;
   private final Throwable errorReason;
-  private final T result;
+  private final OUT result;
+  private final Watchable<OUT> watchable;
 
-  private TaskResult(ResultCode code, Throwable throwable, T result) {
+  private TaskResult(Watchable<OUT> watchable, ResultCode code, Throwable throwable, OUT result) {
+    this.watchable = watchable;
     this.code = code;
     this.result = result;
     if (throwable instanceof ExecutionException) {
@@ -22,16 +26,16 @@ public class TaskResult<T> {
     }
   }
 
-  static <T> TaskResult<T> createOK(T result) {
-    return new TaskResult<>(ResultCode.OK, null, result);
+  static <OUT> TaskResult<OUT> createOK(Watchable<OUT> watchable, OUT result) {
+    return new TaskResult<>(watchable, ResultCode.OK, null, result);
   }
 
-  static <T> TaskResult<T> createTimeout(TimeoutException exception) {
-    return new TaskResult<>(ResultCode.TIMEOUT, exception, null);
+  static <OUT> TaskResult<OUT> createTimeout(Watchable<OUT> watchable, TimeoutException exception) {
+    return new TaskResult<>(watchable, ResultCode.TIMEOUT, exception, null);
   }
 
-  static <T> TaskResult<T> createError(Throwable throwable) {
-    return new TaskResult<>(ResultCode.ERROR, throwable, null);
+  static <OUT> TaskResult<OUT> createError(Watchable<OUT> watchable, Throwable throwable) {
+    return new TaskResult<>(watchable, ResultCode.ERROR, throwable, null);
   }
 
   public ResultCode getCode() {
@@ -46,11 +50,16 @@ public class TaskResult<T> {
     return executionException;
   }
 
-  public T getResult() {
+  public OUT getResult() {
     return result;
   }
 
   public boolean hasError() {
     return code != ResultCode.OK;
   }
+  
+  public Watchable<OUT> getWatchable() {
+    return watchable;
+  }
+
 }

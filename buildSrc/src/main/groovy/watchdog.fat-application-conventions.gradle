@@ -1,27 +1,9 @@
 plugins {
-    id 'watchdog.java-conventions'
-    id 'application'
-}
-
-ext {
-    javaMainClass = "de.pollmann.watchdog.tester.Main"
-}
-
-application {
-    mainClassName = javaMainClass
+    id 'watchdog.application-conventions'
 }
 
 jar {
-    manifest {
-        attributes(
-            'Main-Class': javaMainClass
-        )
-    }
-
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
-
-
-

@@ -2,6 +2,14 @@ plugins {
     id 'watchdog.fat-application-conventions'
 }
 
+conventions {
+    javaMainClass = 'de.pollmann.watchdog.tester.Main'
+}
+
 dependencies {
     implementation project(':Library')
+}
+
+application {
+    mainClass = conventions.javaMainClass.get()
 }

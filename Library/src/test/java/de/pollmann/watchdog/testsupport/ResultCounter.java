@@ -35,6 +35,10 @@ public class ResultCounter<OUT> implements StoreResult<OUT> {
 
   @Override
   public void accept(TaskResult<OUT> taskResult) {
+    Assertions.assertNotNull(taskResult);
+    Assertions.assertNotNull(taskResult.getCode());
+    Assertions.assertNotNull(taskResult.getWatchable());
+    Assertions.assertTrue(taskResult.getWatchable().stopped());
     lastResult = taskResult;
     finishedCounter++;
     if (onResult != null) {

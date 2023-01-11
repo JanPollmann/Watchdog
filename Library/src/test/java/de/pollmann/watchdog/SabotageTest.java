@@ -1,11 +1,14 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.ExceptionConsumer;
 import de.pollmann.watchdog.tasks.ExceptionRunnable;
 import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.tasks.WatchableWithInput;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +44,7 @@ public class SabotageTest {
     WatchdogFactory watchdogFactory = new WatchdogFactory();
 
     for (int i = 0; i < 100; i++) {
-      Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotage()).build();
+      Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotageRunnable()).build();
       assertTimeout(watchdogFactory.waitForCompletion(50, niceSabotage));
       // the runnable does respond to interrupts => stopped => no endless loop
       Assertions.assertTrue(niceSabotage.stopped());
@@ -49,10 +52,54 @@ public class SabotageTest {
 
   }
 
+  @Test
+  @Timeout(10)
+  void consumer_endlessLoopRespondingToInterrupts_TIMEOUT_threadGetsInterrupted() throws InterruptedException {
+    WatchdogFactory watchdogFactory = new WatchdogFactory();
+
+    for (int i = 0; i < 100; i++) {
+      Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotageConsumer()).build();
+      assertTimeout(watchdogFactory.waitForCompletion(50, niceSabotage));
+      // the runnable does respond to interrupts => stopped => no endless loop
+      Assertions.assertTrue(niceSabotage.stopped());
+    }
+
+  }
+
+  @Test
+  @Timeout(10)
+  void repeatableRunnable_endlessLoopRespondingToInterrupts_TIMEOUT_threadGetsInterrupted() throws InterruptedException, ExecutionException {
+    WatchdogFactory watchdogFactory = new WatchdogFactory();
+    Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotageRunnable())
+      .withResultConsumer(result -> Assertions.assertTrue(result.getWatchable().stopped()))
+      .build();
+    RepeatableTaskWithoutInput<Object> repeatable = watchdogFactory.createRepeated(50, niceSabotage);
+
+    for (int i = 0; i < 100; i++) {
+      assertTimeout(repeatable.waitForCompletion());
+    }
+
+  }
+
+  @Test
+  @Timeout(10)
+  void repeatableConsumer_endlessLoopRespondingToInterrupts_TIMEOUT_threadGetsInterrupted() throws InterruptedException, ExecutionException {
+    WatchdogFactory watchdogFactory = new WatchdogFactory();
+    WatchableWithInput<Integer, Object> niceSabotage =  Watchable.builder(new NiceSabotageConsumer())
+      .withResultConsumer(result -> Assertions.assertTrue(result.getWatchable().stopped()))
+      .build();
+    RepeatableTaskWithInput<Integer, Object> repeatable = watchdogFactory.createRepeated(50, niceSabotage);
+
+    for (int i = 0; i < 100; i++) {
+      assertTimeout(repeatable.waitForCompletion(i));
+    }
+
+  }
+
   private void assertTimeout(TaskResult<?> result) {
     Assertions.assertNotNull(result);
     Assertions.assertTrue(result.hasError());
-    Assertions.assertEquals(ResultCode.TIMEOUT, result.getCode());
+    Assertions.assertEquals(ResultCode.TIMEOUT, result.getCode(), String.format("Error: %s", result.getErrorReason()));
     Assertions.assertNotNull(result.getErrorReason());
     Assertions.assertNull(result.getResult());
     Assertions.assertTrue(result.getErrorReason() instanceof TimeoutException);
@@ -77,10 +124,34 @@ public class SabotageTest {
   /**
    * This runnable will not the ExecutorService because of the {@link InterruptedException}
    */
-  private static class NiceSabotage implements ExceptionRunnable {
+  private static class NiceSabotageRunnable implements ExceptionRunnable {
 
     @Override
     public void run() throws Exception {
+      int i = 1;
+      while (i > 0) {
+        // add this if to your code to stop the runnable if a timeout occurred
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
+        // e.g. thread sleep does that as well
+        Thread.sleep(10);
+        i++;
+        if (i >= 1000) {
+          i = 1;
+        }
+      }
+    }
+
+  }
+
+  /**
+   * This runnable will not the ExecutorService because of the {@link InterruptedException}
+   */
+  private static class NiceSabotageConsumer implements ExceptionConsumer<Integer> {
+
+    @Override
+    public void accept(Integer t) throws Exception {
       int i = 1;
       while (i > 0) {
         // add this if to your code to stop the runnable if a timeout occurred

@@ -19,16 +19,19 @@ class WatchableConsumer<IN> extends WatchableWithResultConsumer<Object> implemen
     return null;
   }
 
-  @Override
-  public Watchable<Object> newInput(IN newValue) {
-    return new WatchableConsumerBuilder<>(consumer)
-      .withResultConsumer(resultConsumer)
-      .withInput(newValue)
-      .build();
-  }
-
   static <IN> WatchableConsumerBuilder<IN> builder(ExceptionConsumer<IN> task) {
     return new WatchableConsumerBuilder<>(task);
+  }
+
+  @Override
+  public WatchableBuilder<IN, Object, ?, ? extends WatchableWithInput<IN, Object>> newInput(IN newValue) {
+    return copy().withInput(newValue);
+  }
+
+  @Override
+  public WatchableBuilder<IN, Object, ?, ? extends WatchableWithInput<IN, Object>> copy() {
+    return builder(consumer)
+      .withResultConsumer(resultConsumer);
   }
 
   static class WatchableConsumerBuilder<IN> extends WatchableBuilder<IN, Object, ExceptionConsumer<IN>, WatchableWithInput<IN, Object>> {
