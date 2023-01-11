@@ -4,7 +4,7 @@ plugins {
 }
 
 conventions {
-    javaMainClass = 'error'
+    javaMainClass = ""
 }
 
 application {
@@ -17,6 +17,18 @@ jar {
             'Main-Class': conventions.javaMainClass
         )
     }
+}
+
+build.doFirst {
+    if (conventions.javaMainClass.get().equals("")) {
+        println("Please define conventions.javaMainClass!")
+        println("Example:")
+        println("conventions {")
+        println("\tjavaMainClass = \"com.your.Main\"")
+        println("}")
+        throw new GradleException('Please define conventions.javaMainClass!')
+    }
+    println("Build application with javaMainClass: '$conventions.javaMainClass'.")
 }
 
 

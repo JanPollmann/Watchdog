@@ -7,11 +7,11 @@ repositories {
 }
 
 // Project extension
-interface MessageExtension {
+interface ConventionsExtension {
     Property<String> getJavaMainClass()
 }
 
-project.extensions.create('conventions', MessageExtension)
+project.extensions.create('conventions', ConventionsExtension)
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
