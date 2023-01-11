@@ -16,20 +16,34 @@ endif::[]
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
-* `ResultCode.OK` The execution is completed without exception & the result can be obtained with `TaskResult#getResult`
+* `ResultCode.OK` The execution is completed without exception and the result can be obtained with `TaskResult#getResult`
 * `ResultCode.TIMEOUT` The function call was *NOT* completed, the task was canceled
-* `ResultCode.ERROR` An unexpected exception occurred. The exception can be obtained with `TaskResult#getErrorReason`
+* ResultCode.ERROR` An unexpected exception has occurred. The exception can be determined with `TaskResult#getErrorReason`.
 
 == Quick start
-This library supports `Runnable`, `Callable`, `Consumer` and `Function`
+[CAUTION]
+====
+still under construction! The API might still change a bit (hopefully it will become even better!).
+
+In case of bugs, please create an issue. Gladly also together with a small example.
+====
+This library supports `Runnable`, `Callable`, `Consumer` and `Function`. When a timeout occurs, the worker thread is `interrupted`. Be careful to handle the interruption properly, otherwise a thread of an `ExecutorService` (=> your function) could end up in an infinite loop (=> examples). One way to handle an interruption is as follows:
+[source, java]
+----
+if (Thread.interrupted()) {
+  throw new InterruptedException();
+}
+----
 
 === How to
-TODO publishing
+TODO publishing (maven?)
 
 === Setup
 1. Import the `Library` in your project
 2. Create & store a `WatchdogFactory`. Each factory stores two `ExecutorServices`
-3. create an asynchronous function call with `WatchdogFactory#submitFunctionCall`, a synchronized function call using `WatchdogFactory#waitForCompletion` or create a `RepeatableTask` with `WatchdogFactory#createRepeated`
+3. Use `Watchable.builder(...)` to create a watchable
+4. Create an asynchronous function call with `WatchdogFactory#submitFunctionCall`, a synchronized function call using `WatchdogFactory#waitForCompletion` or create a `RepeatableTask` with `WatchdogFactory#createRepeated`
+5. In case of a RepeatableTask call the task with `RepeatableTask#submitFunctionCall` and `RepeatableTask#waitForCompletion`
 
 === Important
 [CAUTION]
