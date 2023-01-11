@@ -12,7 +12,7 @@ class WatchableRunnable extends WatchableWithResultConsumer<Object> {
   }
 
   @Override
-  public Object call() throws Exception {
+  protected Object wrappedCall() throws Exception {
     runnable.run();
     return null;
   }

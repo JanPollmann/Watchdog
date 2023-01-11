@@ -7,6 +7,10 @@ import java.util.concurrent.Callable;
 public interface Watchable<OUT> extends Callable<OUT> {
   void taskFinished(TaskResult<OUT> taskResult);
 
+  void stop() throws InterruptedException;
+
+  boolean stopped();
+
   static WatchableBuilder<Object, Object, ExceptionRunnable, Watchable<Object>> builder(ExceptionRunnable task) {
     return WatchableRunnable.builder(task);
   }

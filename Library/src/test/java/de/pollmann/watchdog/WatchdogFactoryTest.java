@@ -1,7 +1,6 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.ExceptionFunction;
-import de.pollmann.watchdog.tasks.ExceptionRunnable;
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.testsupport.ResultCounter;
 import de.pollmann.watchdog.testsupport.TestException;
@@ -19,7 +18,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_OK() {
+  void runnable_OK() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {}).build());
 
     assertRunnableResultWithOk(result);
@@ -27,7 +26,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_noTimeout_OK() {
+  void runnable_noTimeout_OK() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(0, Watchable.builder(() -> {}).build());
 
     assertRunnableResultWithOk(result);
@@ -42,7 +41,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void callable_out50_OK() {
+  void callable_out50_OK() throws InterruptedException {
     int returned = 50;
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(500);
@@ -66,7 +65,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void consumer_in50_OK() {
+  void consumer_in50_OK() throws InterruptedException {
     int input = 50;
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(in -> {})
       .withInput(input)
@@ -77,7 +76,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void consumer_in50_OK_withResultConsumer() {
+  void consumer_in50_OK_withResultConsumer() throws InterruptedException {
     int input = 50;
     AtomicBoolean called = new AtomicBoolean(false);
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(in -> {})
@@ -101,7 +100,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void function_in50_out50_OK() {
+  void function_in50_out50_OK() throws InterruptedException {
     int input = 50;
     TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, Watchable.builder((ExceptionFunction<Integer, Integer>) in -> in)
       .withInput(input)
@@ -113,7 +112,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void function_in50_out50_OK_withResultConsumer() {
+  void function_in50_out50_OK_withResultConsumer() throws InterruptedException {
     int input = 50;
     AtomicBoolean called = new AtomicBoolean(false);
     TaskResult<Integer> result = watchdogFactory.waitForCompletion(1000, Watchable.builder((ExceptionFunction<Integer, Integer>) in -> in)
@@ -137,7 +136,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_TIMEOUT() {
+  void runnable_TIMEOUT() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(4000);
     }).build());
@@ -157,7 +156,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void callable_TIMEOUT() {
+  void callable_TIMEOUT() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(4000);
       return null;
@@ -178,7 +177,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_runtimeException_ERROR() {
+  void runnable_runtimeException_ERROR() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       throw new RuntimeException();
     }).build());
@@ -189,7 +188,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_nullPointerException_ERROR_submit() {
+  void runnable_nullPointerException_ERROR_submit() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Object object = null;
       String s = object.toString();
@@ -210,7 +209,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void callable_nullPointerException_ERROR() {
+  void callable_nullPointerException_ERROR() throws InterruptedException {
     TaskResult<String> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Object object = null;
       return object.toString();
@@ -232,7 +231,7 @@ class WatchdogFactoryTest {
 
   @Test
   @Timeout(2)
-  void runnable_testException_ERROR() {
+  void runnable_testException_ERROR() throws InterruptedException {
     TaskResult<?> result = watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       Thread.sleep(500);
       throw new TestException();
@@ -250,34 +249,6 @@ class WatchdogFactoryTest {
       Thread.sleep(500);
       throw new TestException();
     })));
-  }
-
-  @Test
-  void runnable_userTriesEverythingToSabotageTheTimeout_TIMEOUT() {
-    TaskResult<?> result = watchdogFactory.waitForCompletion(1000, createSabotage());
-
-    assertTimeout(result);
-  }
-
-  private Watchable<Object> createSabotage() {
-    return Watchable.builder(new Sabotage()).build();
-  }
-
-  private static class Sabotage implements ExceptionRunnable {
-    @Override
-    public void run() {
-      try {
-        int i = 1;
-        while (i > 0) {
-          i++;
-          if (i >= 100) {
-            i = 1;
-          }
-        }
-      } catch (Throwable throwable) {
-        run();
-      }
-    }
   }
 
   private void assertTimeout(TaskResult<?> result) {

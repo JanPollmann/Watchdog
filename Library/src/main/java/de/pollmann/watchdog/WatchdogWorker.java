@@ -26,24 +26,26 @@ class WatchdogWorker {
     );
   }
 
-  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) {
+  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
     TaskResult<OUT> taskResult;
+    Memento memento = statistics.beginCall();
+    Future<OUT> future = workerPool.submit(watchable);
     try {
-      Memento memento = statistics.beginCall();
-      Future<OUT> future = workerPool.submit(watchable);
       OUT result;
       if (timeoutInMilliseconds != 0) {
         result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
       } else {
         result = future.get();
       }
-      statistics.stopCall(memento);
       // !future.isDone() cannot happen!
       taskResult = TaskResult.createOK(result);
     } catch (TimeoutException timeoutException) {
       taskResult = TaskResult.createTimeout(timeoutException);
     } catch (Throwable throwable) {
       taskResult = TaskResult.createError(throwable);
+    } finally {
+      watchable.stop();
+      statistics.stopCall(memento);
     }
     watchable.taskFinished(taskResult);
     return taskResult;

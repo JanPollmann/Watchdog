@@ -18,7 +18,7 @@ class RepeatableTaskWithInputTest {
 
   @Test
   @Timeout(4)
-  void consumer_ok() {
+  void consumer_ok() throws InterruptedException {
     AtomicInteger sum = new AtomicInteger();
     ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
@@ -36,7 +36,7 @@ class RepeatableTaskWithInputTest {
 
   @Test
   @Timeout(2)
-  void consumer_singleCall_ok() {
+  void consumer_singleCall_ok() throws InterruptedException {
     AtomicInteger sum = new AtomicInteger();
     ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
@@ -64,7 +64,7 @@ class RepeatableTaskWithInputTest {
 
   @Test
   @Timeout(4)
-  void function_ok() {
+  void function_ok() throws InterruptedException {
     AtomicInteger sum = new AtomicInteger();
     ResultCounter<Integer> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
@@ -81,7 +81,7 @@ class RepeatableTaskWithInputTest {
 
   }
 
-  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithInput<Integer, ?> repeated, int loops) {
+  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithInput<Integer, ?> repeated, int loops) throws InterruptedException {
     for (int i = 0; i < loops; i++) {
       TaskResult<?> result = repeated.waitForCompletion(i);
       Assertions.assertEquals(ResultCode.OK, result.getCode());
@@ -129,8 +129,8 @@ class RepeatableTaskWithInputTest {
 
   private static WatchdogFactory withSingleThreadExecutor() {
     return new WatchdogFactory(
-            newSingleThreadExecutor("test:watchdog"),
-            newSingleThreadExecutor("test:worker")
+      newSingleThreadExecutor("test:watchdog"),
+      newSingleThreadExecutor("test:worker")
     );
   }
 

@@ -20,11 +20,19 @@ public class WatchdogFactory {
     worker = new WatchdogWorker(watchdogPool, workerPool);
   }
 
-  public WatchdogFactory(String threadPrefix) {
+  public WatchdogFactory(String threadPrefix, int numberOfWatchdogsAndWorker) {
     this(
-      Executors.newFixedThreadPool(2, createDefaultThreadFactory(String.format("%s:watchdog", threadPrefix))),
-      Executors.newFixedThreadPool(2, createDefaultThreadFactory(String.format("%s:worker", threadPrefix)))
+      Executors.newFixedThreadPool(numberOfWatchdogsAndWorker, createDefaultThreadFactory(String.format("%s:watchdog", threadPrefix))),
+      Executors.newFixedThreadPool(numberOfWatchdogsAndWorker, createDefaultThreadFactory(String.format("%s:worker", threadPrefix)))
     );
+  }
+
+  public WatchdogFactory(int numberOfWatchdogsAndWorker) {
+    this(WatchdogFactory.class.getSimpleName(), numberOfWatchdogsAndWorker);
+  }
+
+  public WatchdogFactory(String threadPrefix) {
+    this(threadPrefix, 2);
   }
 
   public WatchdogFactory() {
@@ -60,7 +68,7 @@ public class WatchdogFactory {
     return worker.submitFunctionCall(timeoutInMilliseconds, watchable, statistics);
   }
 
-  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) {
+  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) throws InterruptedException {
     return worker.waitForCompletion(timeoutInMilliseconds, watchable, statistics);
   }
 

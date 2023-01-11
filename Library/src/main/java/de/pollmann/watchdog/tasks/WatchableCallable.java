@@ -13,7 +13,7 @@ class WatchableCallable<OUT> extends WatchableWithResultConsumer<OUT> {
   }
 
   @Override
-  public OUT call() throws Exception {
+  protected OUT wrappedCall() throws Exception {
     return callable.call();
   }
 

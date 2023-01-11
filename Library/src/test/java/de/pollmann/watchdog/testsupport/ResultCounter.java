@@ -48,6 +48,7 @@ public class ResultCounter<OUT> implements StoreResult<OUT> {
       .build());
     while (!future.isDone()) {
       try {
+        //noinspection BusyWait
         Thread.sleep(100);
       } catch (InterruptedException e) {
         Assertions.fail(e);

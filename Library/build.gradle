@@ -8,3 +8,9 @@ version '0.0.1'
 dependencies {
 
 }
+
+//tasks.named('test') {
+//    useJUnitPlatform() {
+//        systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
+//    }
+//}

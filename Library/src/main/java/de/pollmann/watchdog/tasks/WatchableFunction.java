@@ -14,7 +14,7 @@ class WatchableFunction<IN, OUT> extends WatchableWithResultConsumer<OUT> implem
   }
 
   @Override
-  public OUT call() throws Exception {
+  protected OUT wrappedCall() throws Exception {
     return function.apply(input);
   }
 

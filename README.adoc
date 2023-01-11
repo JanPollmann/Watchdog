@@ -12,6 +12,7 @@ endif::[]
 :path-example-1-FastLoopApp: Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java
 :path-example-1-AppContext: Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java
 :path-test: Library/src/test/java/de/pollmann/watchdog/
+:path-test-sabotage: Library/src/test/java/de/pollmann/watchdog/SabotageTest.java
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
@@ -66,6 +67,18 @@ ifndef::env-github[]
 [source, java]
 ----
 include::{path-example-1-AppContext}[]
+----
+endif::[]
+
+terminate endless loop test
+
+ifdef::env-github[]
+{url-rel-file-base}{path-test-sabotage}
+endif::[]
+ifndef::env-github[]
+[source, java]
+----
+include::{path-test-sabotage}[]
 ----
 endif::[]
 

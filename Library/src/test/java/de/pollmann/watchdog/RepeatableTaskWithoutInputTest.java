@@ -17,7 +17,7 @@ class RepeatableTaskWithoutInputTest {
 
   @Test
   @Timeout(4)
-  void runnable_ok() {
+  void runnable_ok() throws InterruptedException {
     ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
     });
@@ -33,7 +33,7 @@ class RepeatableTaskWithoutInputTest {
 
   @Test
   @Timeout(2)
-  void runnable_singleCall_ok() {
+  void runnable_singleCall_ok() throws InterruptedException {
     ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
     });
@@ -60,7 +60,7 @@ class RepeatableTaskWithoutInputTest {
 
   @Test
   @Timeout(4)
-  void callable_ok() {
+  void callable_ok() throws InterruptedException {
     ResultCounter<Integer> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
       Assertions.assertEquals(42, result.getResult());
@@ -76,7 +76,7 @@ class RepeatableTaskWithoutInputTest {
     Assertions.assertEquals(0, repeated.getCallsPerSecond());
   }
 
-  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithoutInput<?> repeated, int loops) {
+  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithoutInput<?> repeated, int loops) throws InterruptedException {
     for (int i = 0; i < loops; i++) {
       TaskResult<?> result = repeated.waitForCompletion();
       Assertions.assertEquals(ResultCode.OK, result.getCode());

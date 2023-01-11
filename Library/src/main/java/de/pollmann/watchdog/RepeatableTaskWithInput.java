@@ -24,7 +24,7 @@ public class RepeatableTaskWithInput<IN, OUT> extends RepeatableTask {
     return getWorkerIfAvailable().submitFunctionCall(timeoutInMilliseconds, repeated.newInput(input), this);
   }
 
-  public TaskResult<OUT> waitForCompletion(IN input) {
+  public TaskResult<OUT> waitForCompletion(IN input) throws InterruptedException {
     return getWorkerIfAvailable().waitForCompletion(timeoutInMilliseconds, repeated.newInput(input), this);
   }
 }
