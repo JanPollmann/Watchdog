@@ -14,7 +14,7 @@ class WatchableConsumer<IN> extends WatchableWithResultConsumer<Object> implemen
   }
 
   @Override
-  public Object call() throws Exception {
+  protected Object wrappedCall() throws Exception {
     consumer.accept(input);
     return null;
   }

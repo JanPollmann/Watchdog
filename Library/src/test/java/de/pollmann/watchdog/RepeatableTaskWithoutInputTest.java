@@ -17,35 +17,66 @@ class RepeatableTaskWithoutInputTest {
 
   @Test
   @Timeout(4)
-  void runnable_ok() {
+  void runnable_ok() throws InterruptedException {
     ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
     });
 
-    RepeatableTaskWithoutInput<Object> repeated = createRunnable(100, resultCounter.createDecoratedRunnable(() -> {
+    RepeatableTaskWithoutInput<Object> repeated = createRunnable(100, false, resultCounter.createDecoratedRunnable(() -> {
       Thread.sleep(50);
     }));
 
     assertRepeated(resultCounter, repeated, 20);
+    // 0 because statistics are disabled
+    Assertions.assertEquals(0, repeated.getCallsPerSecond());
+  }
+
+  @Test
+  @Timeout(2)
+  void runnable_singleCall_ok() throws InterruptedException {
+    ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
+      Assertions.assertEquals(ResultCode.OK, result.getCode());
+    });
+
+    RepeatableTaskWithoutInput<Object> repeated = createRunnable(100, true, resultCounter.createDecoratedRunnable(() -> {
+
+    }));
+
+    assertRepeated(resultCounter, repeated, 1);
+
+    try {
+      // sleep to finish the timeframe of 1000 ms
+      Thread.sleep(1100);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
+    }
+
+    // because:
+    // statistics array fills over 10 seconds, one entry per second
+    // two runnable's are submitted
+    // 2 loops / 10 seconds = 0.2
+    Assertions.assertEquals(0.2, repeated.getCallsPerSecond());
   }
 
   @Test
   @Timeout(4)
-  void callable_ok() {
+  void callable_ok() throws InterruptedException {
     ResultCounter<Integer> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
       Assertions.assertEquals(42, result.getResult());
     });
 
-    RepeatableTaskWithoutInput<Integer> repeated = createCallable(100, resultCounter.createDecoratedCallable(() -> {
+    RepeatableTaskWithoutInput<Integer> repeated = createCallable(100, false, resultCounter.createDecoratedCallable(() -> {
       Thread.sleep(50);
       return 42;
     }));
 
     assertRepeated(resultCounter, repeated, 20);
+    // 0 because statistics are disabled
+    Assertions.assertEquals(0, repeated.getCallsPerSecond());
   }
 
-  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithoutInput<?> repeated, int loops) {
+  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithoutInput<?> repeated, int loops) throws InterruptedException {
     for (int i = 0; i < loops; i++) {
       TaskResult<?> result = repeated.waitForCompletion();
       Assertions.assertEquals(ResultCode.OK, result.getCode());
@@ -75,12 +106,20 @@ class RepeatableTaskWithoutInputTest {
     return true;
   }
 
-  private RepeatableTaskWithoutInput<Object> createRunnable(long timeoutInMilliseconds, Watchable<Object> runnable) {
-    return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, runnable);
+  private RepeatableTaskWithoutInput<Object> createRunnable(long timeoutInMilliseconds, boolean monitored, Watchable<Object> runnable) {
+    if (monitored) {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, runnable);
+    } else {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, runnable);
+    }
   }
 
-  private RepeatableTaskWithoutInput<Integer> createCallable(long timeoutInMilliseconds, Watchable<Integer> callable) {
-    return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, callable);
+  private RepeatableTaskWithoutInput<Integer> createCallable(long timeoutInMilliseconds, boolean monitored, Watchable<Integer> callable) {
+    if (monitored) {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, callable);
+    } else {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, callable);
+    }
   }
 
   private static WatchdogFactory withSingleThreadExecutor() {

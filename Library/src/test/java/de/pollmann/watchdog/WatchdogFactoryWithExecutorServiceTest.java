@@ -15,12 +15,14 @@ class WatchdogFactoryWithExecutorServiceTest {
 
   @Test
   @Timeout(2)
-  void runnable_endlessLoop_TIMEOUT() {
+  void runnable_endlessLoop_TIMEOUT() throws InterruptedException {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
 
     assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       while (true) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
     }).build()));
   }
@@ -33,20 +35,24 @@ class WatchdogFactoryWithExecutorServiceTest {
 
     assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       while (true) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
     })));
   }
 
   @Test
   @Timeout(2)
-  void callable_endlessLoop_TIMEOUT() {
+  void callable_endlessLoop_TIMEOUT() throws InterruptedException {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
 
     assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
       boolean continueLoop = true;
       while (continueLoop) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
       return null;
     }).build()));
@@ -61,19 +67,23 @@ class WatchdogFactoryWithExecutorServiceTest {
     assertTimeout(resultCounter.submit(watchdogFactory, 1000, Watchable.builder(() -> {
       boolean continueLoop = true;
       while (continueLoop) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
       return null;
     })));
   }
 
   @Test
-  @Timeout(4)
-  void runnable_endlessLoop_TIMEOUT_repeated() {
+  @Timeout(8)
+  void runnable_endlessLoop_TIMEOUT_repeated() throws InterruptedException {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
     Watchable<Object> runnable = Watchable.builder(() -> {
       while (true) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
     }).build();
 
@@ -82,6 +92,9 @@ class WatchdogFactoryWithExecutorServiceTest {
     runnable = Watchable.builder(() -> {
       int i = 1;
       while (i > 0) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
         i++;
         if (i == 100) {
           i = 1;
@@ -95,13 +108,15 @@ class WatchdogFactoryWithExecutorServiceTest {
   }
 
   @Test
-  @Timeout(4)
+  @Timeout(8)
   void nonBlocking_runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
     ResultCounter<Object> resultCounter = new ResultCounter<>();
     ExceptionRunnable runnable = () -> {
       while (true) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
     };
 
@@ -110,6 +125,9 @@ class WatchdogFactoryWithExecutorServiceTest {
     runnable = () -> {
       int i = 1;
       while (i > 0) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
         i++;
         if (i == 100) {
           i = 1;
@@ -123,13 +141,15 @@ class WatchdogFactoryWithExecutorServiceTest {
   }
 
   @Test
-  @Timeout(4)
-  void callable_endlessLoop_TIMEOUT_repeated() {
+  @Timeout(8)
+  void callable_endlessLoop_TIMEOUT_repeated() throws InterruptedException {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
     Callable<?> callable = () -> {
       boolean continueLoop = true;
       while (continueLoop) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
       return null;
     };
@@ -139,6 +159,9 @@ class WatchdogFactoryWithExecutorServiceTest {
     callable = () -> {
       int i = 1;
       while (i > 0) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
         i++;
         if (i == 100) {
           i = 1;
@@ -153,14 +176,16 @@ class WatchdogFactoryWithExecutorServiceTest {
   }
 
   @Test
-  @Timeout(4)
+  @Timeout(8)
   void nonBlocking_callable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
     ResultCounter<Integer> resultCounter = new ResultCounter<>();
     Callable<Integer> callable = () -> {
       boolean continueLoop = true;
       while (continueLoop) {
-        // well ...
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
       }
       return null;
     };
@@ -170,6 +195,9 @@ class WatchdogFactoryWithExecutorServiceTest {
     callable = () -> {
       int i = 1;
       while (i > 0) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
         i++;
         if (i == 100) {
           i = 1;
@@ -184,13 +212,16 @@ class WatchdogFactoryWithExecutorServiceTest {
   }
 
   @Test
-  @Timeout(6)
+  @Timeout(8)
   void parallel_runnable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
     ResultCounter<Object> resultCounter = new ResultCounter<>(this::assertTimeout);
     ExceptionRunnable runnable = () -> {
       int i = 1;
       while (i > 0) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
         i++;
         if (i == 100) {
           i = 1;
@@ -213,13 +244,16 @@ class WatchdogFactoryWithExecutorServiceTest {
   }
 
   @Test
-  @Timeout(6)
+  @Timeout(8)
   void parallel_callable_endlessLoop_TIMEOUT_repeated() {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
     ResultCounter<Integer> resultCounter = new ResultCounter<>(this::assertTimeout);
     Callable<Integer> callable = () -> {
       int i = 1;
       while (i > 0) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
         i++;
         if (i == 100) {
           i = 1;

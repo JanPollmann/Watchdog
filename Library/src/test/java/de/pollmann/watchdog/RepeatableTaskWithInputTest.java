@@ -18,39 +18,70 @@ class RepeatableTaskWithInputTest {
 
   @Test
   @Timeout(4)
-  void consumer_ok() {
+  void consumer_ok() throws InterruptedException {
     AtomicInteger sum = new AtomicInteger();
     ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
     });
 
-    RepeatableTaskWithInput<Integer, Object> repeated = createConsumer(100, resultCounter.createDecoratedConsumer(
+    RepeatableTaskWithInput<Integer, Object> repeated = createConsumer(100, false, resultCounter.createDecoratedConsumer(
       sum::addAndGet
     ));
 
     assertRepeated(resultCounter, repeated, 10);
     Assertions.assertEquals(90, sum.get());
+    // 0 because statistics are disabled
+    Assertions.assertEquals(0, repeated.getCallsPerSecond());
+  }
+
+  @Test
+  @Timeout(2)
+  void consumer_singleCall_ok() throws InterruptedException {
+    AtomicInteger sum = new AtomicInteger();
+    ResultCounter<Object> resultCounter = new ResultCounter<>(result -> {
+      Assertions.assertEquals(ResultCode.OK, result.getCode());
+    });
+
+    RepeatableTaskWithInput<Integer, Object> repeated = createConsumer(100, true, resultCounter.createDecoratedConsumer(
+            sum::addAndGet
+    ));
+
+    assertRepeated(resultCounter, repeated, 1);
+
+    try {
+      // sleep to finish the timeframe of 1000 ms
+      Thread.sleep(1100);
+    } catch (InterruptedException e) {
+      Assertions.fail(e);
+    }
+
+    // because:
+    // statistics array fills over 10 seconds, one entry per second
+    // two consumer's are submitted
+    // 2 loops / 10 seconds = 0.2
+    Assertions.assertEquals(0.2, repeated.getCallsPerSecond());
   }
 
   @Test
   @Timeout(4)
-  void function_ok() {
+  void function_ok() throws InterruptedException {
     AtomicInteger sum = new AtomicInteger();
     ResultCounter<Integer> resultCounter = new ResultCounter<>(result -> {
       Assertions.assertEquals(ResultCode.OK, result.getCode());
       Assertions.assertEquals(42, result.getResult());
     });
 
-    RepeatableTaskWithInput<Integer, Integer> repeated = createFunction(100, resultCounter.createDecoratedFunction(input -> {
+    RepeatableTaskWithInput<Integer, Integer> repeated = createFunction(100, false, resultCounter.createDecoratedFunction(input -> {
       sum.addAndGet(input);
       return 42;
     }));
 
     assertRepeated(resultCounter, repeated, 11);
     Assertions.assertEquals(110, sum.get());
+
   }
 
-  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithInput<Integer, ?> repeated, int loops) {
+  private void assertRepeated(StoreResult<?> testSupport, RepeatableTaskWithInput<Integer, ?> repeated, int loops) throws InterruptedException {
     for (int i = 0; i < loops; i++) {
       TaskResult<?> result = repeated.waitForCompletion(i);
       Assertions.assertEquals(ResultCode.OK, result.getCode());
@@ -80,18 +111,26 @@ class RepeatableTaskWithInputTest {
     return true;
   }
 
-  private RepeatableTaskWithInput<Integer, Object> createConsumer(long timeoutInMilliseconds, WatchableWithInput<Integer, Object> consumer) {
-    return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, consumer);
+  private RepeatableTaskWithInput<Integer, Object> createConsumer(long timeoutInMilliseconds, boolean monitored, WatchableWithInput<Integer, Object> consumer) {
+    if (monitored) {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, consumer);
+    } else {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, consumer);
+    }
   }
 
-  private RepeatableTaskWithInput<Integer, Integer> createFunction(long timeoutInMilliseconds, WatchableWithInput<Integer, Integer> function) {
-    return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, function);
+  private RepeatableTaskWithInput<Integer, Integer> createFunction(long timeoutInMilliseconds, boolean monitored, WatchableWithInput<Integer, Integer> function) {
+    if (monitored) {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, function);
+    } else {
+      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, function);
+    }
   }
 
   private static WatchdogFactory withSingleThreadExecutor() {
     return new WatchdogFactory(
-            newSingleThreadExecutor("test:watchdog"),
-            newSingleThreadExecutor("test:worker")
+      newSingleThreadExecutor("test:watchdog"),
+      newSingleThreadExecutor("test:worker")
     );
   }
 

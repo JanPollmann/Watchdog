@@ -1,6 +1,8 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.tasks.Watchable;
+import de.pollmann.watchdog.util.statistics.Memento;
+import de.pollmann.watchdog.util.statistics.Statistics;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -18,16 +20,17 @@ class WatchdogWorker {
     this.workerPool = Objects.requireNonNull(workerPool);
   }
 
-  public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable) {
+  public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) {
     return watchdogPool.submit(() ->
-      waitForCompletion(timeoutInMilliseconds, watchable)
+      waitForCompletion(timeoutInMilliseconds, watchable, statistics)
     );
   }
 
-  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) {
+  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
     TaskResult<OUT> taskResult;
+    Memento memento = statistics.beginCall();
+    Future<OUT> future = workerPool.submit(watchable);
     try {
-      Future<OUT> future = workerPool.submit(watchable);
       OUT result;
       if (timeoutInMilliseconds != 0) {
         result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
@@ -40,6 +43,9 @@ class WatchdogWorker {
       taskResult = TaskResult.createTimeout(timeoutException);
     } catch (Throwable throwable) {
       taskResult = TaskResult.createError(throwable);
+    } finally {
+      watchable.stop();
+      statistics.stopCall(memento);
     }
     watchable.taskFinished(taskResult);
     return taskResult;
