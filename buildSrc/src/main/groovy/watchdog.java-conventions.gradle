@@ -6,6 +6,13 @@ repositories {
     mavenCentral()
 }
 
+// Project extension
+interface MessageExtension {
+    Property<String> getJavaMainClass()
+}
+
+project.extensions.create('conventions', MessageExtension)
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
