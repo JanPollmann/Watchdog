@@ -50,6 +50,7 @@ class WatchdogWorker {
         statistics.stopCall(memento);
       }
     }
+    // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
     watchable.taskFinished(taskResult);
     return taskResult;
 
