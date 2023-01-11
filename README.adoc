@@ -23,7 +23,9 @@ Each function call has a timeout and terminates the execution. After each functi
 == Quick start
 [CAUTION]
 ====
-still under construction!
+still under construction! The API might change a bit (hopefully gets even better!).
+
+In case of errors, please create an issue. Gladly also together with a small example.
 ====
 This library supports `Runnable`, `Callable`, `Consumer` and `Function`. If a timeout occurs the worker thread gets `interrupted`. Make sure to handle the interruption properly, otherwise a thread of an `ExecutorService` might (=> your function) end up in an endless loop (=> examples). One possibility to handle an interrupt is the following:
 [source, java]
