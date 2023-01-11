@@ -7,10 +7,6 @@ conventions {
     javaMainClass = ""
 }
 
-application {
-    mainClassName = conventions.javaMainClass
-}
-
 jar {
     manifest {
         attributes(
@@ -28,5 +24,10 @@ build.doFirst {
         println("}")
         throw new GradleException('Please define conventions.javaMainClass!')
     }
-    println("Build application with javaMainClass: '$conventions.javaMainClass'.")
+    println("Build application with javaMainClass: " + conventions.javaMainClass.get())
+}
+
+
+run.doFirst {
+    println("Application main class: '$application.mainClassName'")
 }

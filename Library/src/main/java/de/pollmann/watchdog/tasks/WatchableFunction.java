@@ -18,16 +18,19 @@ class WatchableFunction<IN, OUT> extends WatchableWithResultConsumer<OUT> implem
     return function.apply(input);
   }
 
-  @Override
-  public Watchable<OUT> newInput(IN newValue) {
-    return new WatchableFunctionBuilder<>(function)
-      .withResultConsumer(resultConsumer)
-      .withInput(newValue)
-      .build();
-  }
-
   static <IN, OUT> WatchableFunctionBuilder<IN, OUT> builder(ExceptionFunction<IN, OUT> task) {
     return new WatchableFunctionBuilder<>(task);
+  }
+
+  @Override
+  public WatchableBuilder<IN, OUT, ?, ? extends WatchableWithInput<IN, OUT>> newInput(IN newValue) {
+    return copy().withInput(newValue);
+  }
+
+  @Override
+  public WatchableBuilder<IN, OUT, ?, ? extends WatchableWithInput<IN, OUT>> copy() {
+    return builder(function)
+      .withResultConsumer(resultConsumer);
   }
 
   static class WatchableFunctionBuilder<IN, OUT> extends WatchableBuilder<IN, OUT, ExceptionFunction<IN, OUT>, WatchableWithInput<IN, OUT>> {

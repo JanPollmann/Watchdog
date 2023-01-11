@@ -104,7 +104,7 @@ class WatchdogFactoryWithExecutorServiceTest {
 
     assertTimeout(watchdogFactory.waitForCompletion(1000, runnable));
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, runnable));
+    assertNotRepeatable(watchdogFactory.waitForCompletion(1000, runnable));
   }
 
   @Test
@@ -172,7 +172,10 @@ class WatchdogFactoryWithExecutorServiceTest {
 
     assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
+    Watchable<?> watchable = Watchable.builder(callable).build();
+    assertTimeout(watchdogFactory.waitForCompletion(1000, watchable));
+
+    assertNotRepeatable(watchdogFactory.waitForCompletion(1000, watchable));
   }
 
   @Test
@@ -278,10 +281,21 @@ class WatchdogFactoryWithExecutorServiceTest {
 
   private void assertTimeout(TaskResult<?> result) {
     Assertions.assertNotNull(result);
+    Assertions.assertNotNull(result.getWatchable());
     Assertions.assertTrue(result.hasError());
-    Assertions.assertEquals(ResultCode.TIMEOUT, result.getCode());
+    Assertions.assertEquals(ResultCode.TIMEOUT, result.getCode(), String.format("Error: %s", result.getErrorReason()));
     Assertions.assertNotNull(result.getErrorReason());
     Assertions.assertTrue(result.getErrorReason() instanceof TimeoutException);
+    Assertions.assertNull(result.getResult());
+  }
+
+  private void assertNotRepeatable(TaskResult<?> result) {
+    Assertions.assertNotNull(result);
+    Assertions.assertNotNull(result.getWatchable());
+    Assertions.assertTrue(result.hasError());
+    Assertions.assertEquals(ResultCode.ERROR, result.getCode());
+    Assertions.assertNotNull(result.getErrorReason());
+    Assertions.assertTrue(result.getErrorReason() instanceof WatchableNotRepeatableException);
     Assertions.assertNull(result.getResult());
   }
 

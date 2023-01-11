@@ -9,3 +9,7 @@ conventions {
 dependencies {
     implementation project(':Library')
 }
+
+application {
+    mainClass = conventions.javaMainClass.get()
+}

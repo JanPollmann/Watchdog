@@ -21,10 +21,10 @@ public class RepeatableTaskWithInput<IN, OUT> extends RepeatableTask {
   }
 
   public Future<?> submitFunctionCall(IN input) {
-    return getWorkerIfAvailable().submitFunctionCall(timeoutInMilliseconds, repeated.newInput(input), this);
+    return getWorkerIfAvailable().submitFunctionCall(timeoutInMilliseconds, repeated.newInput(input).build(), this);
   }
 
   public TaskResult<OUT> waitForCompletion(IN input) throws InterruptedException {
-    return getWorkerIfAvailable().waitForCompletion(timeoutInMilliseconds, repeated.newInput(input), this);
+    return getWorkerIfAvailable().waitForCompletion(timeoutInMilliseconds, repeated.newInput(input).build(), this);
   }
 }

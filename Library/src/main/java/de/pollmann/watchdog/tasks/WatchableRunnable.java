@@ -21,6 +21,12 @@ class WatchableRunnable extends WatchableWithResultConsumer<Object> {
     return new WatchableRunnableBuilder(task);
   }
 
+  @Override
+  public WatchableBuilder<?, Object, ?, ? extends Watchable<Object>> copy() {
+    return builder(runnable)
+      .withResultConsumer(resultConsumer);
+  }
+
   static class WatchableRunnableBuilder extends WatchableBuilder<Object, Object, ExceptionRunnable, Watchable<Object>> {
 
     private WatchableRunnableBuilder(ExceptionRunnable task) {

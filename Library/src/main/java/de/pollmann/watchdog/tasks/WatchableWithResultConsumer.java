@@ -1,13 +1,16 @@
 package de.pollmann.watchdog.tasks;
 
 import de.pollmann.watchdog.TaskResult;
+import de.pollmann.watchdog.WatchableNotRepeatableException;
+
+import java.util.concurrent.CountDownLatch;
 
 abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
 
   protected final ResultConsumer<OUT> resultConsumer;
+  private final CountDownLatch stopped = new CountDownLatch(2);
 
   private volatile Thread callerThread = null;
-  private volatile boolean stopped;
 
   protected WatchableWithResultConsumer(WatchableBuilder<?, OUT, ?, ?> builder) {
     if (builder.resultConsumer == null) {
@@ -29,33 +32,33 @@ abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
   @Override
   public void stop() throws InterruptedException {
     if (callerThread != null) {
-      callerThread.interrupt();
-      long sleepDuration = 1;
-      while (!stopped) {
-        if (Thread.interrupted()) {
-          throw new InterruptedException();
-        }
-        //noinspection BusyWait
-        Thread.sleep(sleepDuration);
-        sleepDuration = Math.max(sleepDuration + 1, 1000);
+      try {
+        callerThread.interrupt();
+      } catch (NullPointerException nullPointerException) {
+        // in case of a cleared reference: nothing to do
       }
     }
+    stopped.await();
   }
 
   @Override
-  public final OUT call() throws Exception {
+  public final synchronized OUT call() throws Exception {
+    if (stopped()) {
+      throw new WatchableNotRepeatableException();
+    }
     callerThread = Thread.currentThread();
+    stopped.countDown();
     try {
       return wrappedCall();
     } finally {
-      stopped = true;
+      stopped.countDown();
       callerThread = null;
     }
   }
 
   @Override
   public final boolean stopped() {
-    return stopped;
+    return stopped.getCount() == 0;
   }
 
   protected abstract OUT wrappedCall() throws Exception;

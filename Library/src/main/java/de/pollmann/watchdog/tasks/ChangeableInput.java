@@ -1,5 +1,5 @@
 package de.pollmann.watchdog.tasks;
 
-interface ChangeableInput<IN, OUT> {
-  Watchable<OUT> newInput(IN newValue);
+public interface ChangeableInput<IN, OUT> {
+  WatchableBuilder<IN, OUT, ?, ? extends WatchableWithInput<IN, OUT>> newInput(IN newValue);
 }

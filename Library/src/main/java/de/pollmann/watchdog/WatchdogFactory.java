@@ -156,7 +156,7 @@ public class WatchdogFactory {
    * @param watchable the watchable to invoke
    * @param <OUT> the output type
    * @return the task result
-   * @throws InterruptedException when the API call to {@link Watchable#stop()} gets interrupted
+   * @throws InterruptedException if the thread gets interrupted
    */
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) throws InterruptedException {
     return worker.waitForCompletion(timeoutInMilliseconds, watchable, statistics);
