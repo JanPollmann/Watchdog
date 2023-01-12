@@ -1,9 +1,43 @@
 plugins {
     id 'watchdog.library-conventions'
+    id 'watchdog.publication-conventions'
 }
 
-group 'de.pollmann.Watchdog'
-version '0.0.1'
+def local_gradle = 'local.gradle'
+if (project.file(local_gradle).exists()) {
+    println "apply from local gradle ..."
+    apply from: local_gradle
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = 'de.pollmann.Watchdog'
+                artifactId = 'Watchdog'
+                version = '0.0.1'
+
+                from components.java
+
+                pom {
+                    name = 'Watchdog'
+                    description = 'A function call watchdog for java'
+
+                    licenses {
+                        license {
+                            name = 'The Unlicense'
+                            url = 'https://unlicense.org'
+                        }
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                url = ""
+            }
+        }
+    }
+}
 
 dependencies {
 
