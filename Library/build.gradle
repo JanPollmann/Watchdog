@@ -7,16 +7,14 @@ def user = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
 def key = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
 
 if (user != null && key != null) {
-    println "publishing to GitHubPackages enabled with following credentials:"
-    println user
-    println key
+    println "publishing to GitHubPackages enabled as $user"
 
     publishing {
         publications {
             gpr(MavenPublication) {
                 groupId = 'de.pollmann.Watchdog'
-                artifactId = 'Watchdog'
-                version = '0.0.1-alpha1'
+                artifactId = 'watchdog'
+                version = '0.0.1-alpha2'
 
                 from components.java
 
