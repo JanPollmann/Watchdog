@@ -20,7 +20,7 @@ interface Stoppable {
   void stop() throws InterruptedException;
 
   /**
-   * Internal support function
+   * Internal support function. Signals: The watchable was called once and completed the execution
    *
    * BEWARE: {@link Watchable}s are copied if required
    *
@@ -32,6 +32,7 @@ interface Stoppable {
    * Internal support function. Makes sure the watchable is executed exactly once
    *
    * BEWARE: {@link Watchable}s are copied if required
+   *
    * @throws WatchableNotRepeatableException if the watchable was already started
    */
   void start() throws WatchableNotRepeatableException;

@@ -13,6 +13,7 @@ endif::[]
 :path-example-1-AppContext: Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java
 :path-test: Library/src/test/java/de/pollmann/watchdog/
 :path-test-sabotage: Library/src/test/java/de/pollmann/watchdog/SabotageTest.java
+:url-create-github-token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
@@ -35,26 +36,53 @@ if (Thread.interrupted()) {
 }
 ----
 
-=== How to
-TODO publishing (maven?)
-
 === Setup
-1. Import the `Library` in your project
+1. Import the `Library` in your project (see instructions bellow)
 2. Create & store a `WatchdogFactory`. Each factory stores two `ExecutorServices`
-3. Use `Watchable.builder(...)` to create a watchable
+3. Use `Watchable.builder(...)` to create a watchable +
+optional: add a `ResultProcessor` +
 4. Create an asynchronous function call with `WatchdogFactory#submitFunctionCall`, a synchronized function call using `WatchdogFactory#waitForCompletion` or create a `RepeatableTask` with `WatchdogFactory#createRepeated`
 5. In case of a RepeatableTask call the task with `RepeatableTask#submitFunctionCall` and `RepeatableTask#waitForCompletion`
+
+=== Import the Library
+==== Gradle
+[source]
+----
+repositories {
+    maven {
+        url = uri("https://maven.pkg.github.com/JanPollmann/Watchdog")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation 'de.pollmann.watchdog:watchdog:<version>'
+}
+----
+do not forget to add your credentials as follows in your `~/.gradle/gradle.properties`, otherwise you cannot download the library:
+[source]
+----
+gpr.user=<YourUser>
+gpr.key=<YourToken>
+----
+
+link: {url-create-github-token}
 
 === Important
 [CAUTION]
 ====
-* As soon as the internal worker of the `WatchdogFactory` gets garbage collected, `ExecutorServices#shutdown` is called for every `ExecutorServices` (finalize)
-** a `RepeatableTask` has a reference to the internal worker
-** to terminate the RepeatableTask call `RepeatableTask#terminate`
-** a terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
+* Please remind: `ResultProcessor` (if specified) will be called *after* the monitored function call *without any timeout*. If there is heavy computational work, the call will take longer as specified (or will not terminate if there is an infinite loop)
+** Obviously you could execute a `RepeatableTask` as `ResultProcessor` :)
 * The timeout is specified in milliseconds
-** a timeout of 0 ms will be handled as `no timeout`
-* For not repeated function calls, the input of a function/consumer is passed in the constructor!
+** A timeout of 0 ms will be handled as `no timeout`
+* For not repeated function calls, the input of a function/consumer is passed in the builder!
+* As soon as the internal worker of the `WatchdogFactory` gets garbage collected, `ExecutorServices#shutdown` is called for every `ExecutorServices` (finalize)
+** A `RepeatableTask` has a reference to the internal worker
+** To terminate the RepeatableTask call `RepeatableTask#terminate`
+** A terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
 ====
 
 == Example

@@ -12,9 +12,9 @@ if (user != null && key != null) {
     publishing {
         publications {
             gpr(MavenPublication) {
-                groupId = 'de.pollmann.Watchdog'
+                groupId = 'de.pollmann.watchdog'
                 artifactId = 'watchdog'
-                version = '0.0.1-alpha2'
+                version = '0.1.0-alpha1'
 
                 from components.java
 
