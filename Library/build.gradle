@@ -3,10 +3,13 @@ plugins {
     id 'watchdog.publication-conventions'
 }
 
-if (project.findProperty("gpr.user") && project.findProperty("gpr.key")) {
+def user = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+def key = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+
+if (user != null && key != null) {
     println "publishing to GitHubPackages enabled with following credentials:"
-    println project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-    println project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+    println user
+    println key
 
     publishing {
         publications {
@@ -36,8 +39,8 @@ if (project.findProperty("gpr.user") && project.findProperty("gpr.key")) {
                 name = "GitHubPackages"
                 url = uri("https://maven.pkg.github.com/JanPollmann/Watchdog")
                 credentials {
-                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                    password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+                    username = user
+                    password = key
                 }
             }
         }
