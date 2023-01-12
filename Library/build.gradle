@@ -3,13 +3,17 @@ plugins {
     id 'watchdog.publication-conventions'
 }
 
-if (project.findProperty("gpr.user")) {
+if (project.findProperty("gpr.user") && project.findProperty("gpr.key")) {
+    println "publishing to GitHubPackages enabled with following credentials:"
+    println project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+    println project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+
     publishing {
         publications {
             gpr(MavenPublication) {
                 groupId = 'de.pollmann.Watchdog'
                 artifactId = 'Watchdog'
-                version = '0.0.1'
+                version = '0.0.2'
 
                 from components.java
 
