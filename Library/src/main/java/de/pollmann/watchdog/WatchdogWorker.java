@@ -6,10 +6,7 @@ import de.pollmann.watchdog.util.statistics.Memento;
 import de.pollmann.watchdog.util.statistics.Statistics;
 
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 class WatchdogWorker {
 
@@ -28,32 +25,58 @@ class WatchdogWorker {
   }
 
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
+    TaskResult<OUT> taskResult = callWatchable(timeoutInMilliseconds, watchable, statistics);
+    // TODO: make the ResultConsumer a watchable & monitor the result consumer as well? => user defines the result timeout
+    // TODO: an alternative might be: #submitFunctionCall calls #waitForCompletion as watchable => 2 times the same timeout
+    // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
+    watchable.taskFinished(taskResult);
+    return taskResult;
+  }
+
+  /**
+   * 1. {@link Watchable#start()} (makes sure the watchable is executed exactly once) <br>
+   * 2. {@link Watchable#call()} <br>
+   * 3. {@link Watchable#stop()} (interrupt worker if required)
+   *
+   * @return the result of no exception
+   * @throws InterruptedException in case of an interrupt
+   */
+  private <OUT> TaskResult<OUT> callWatchable(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
     TaskResult<OUT> taskResult = startWatchable(watchable);
     if (taskResult == null) {
+      // this area can only be entered by one thread! see startWatchable => Watchable#start
       Memento memento = statistics.beginCall();
       try {
-        Future<OUT> future = workerPool.submit(watchable);
-        OUT result;
-        if (timeoutInMilliseconds != 0) {
-          result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
-        } else {
-          result = future.get();
-        }
-        // !future.isDone() cannot happen!
+        OUT result = submitStartedWatchableAndWaitForResult(timeoutInMilliseconds, watchable);
         taskResult = TaskResult.createOK(watchable, result);
       } catch (TimeoutException timeoutException) {
         taskResult = TaskResult.createTimeout(watchable, timeoutException);
       } catch (Throwable throwable) {
         taskResult = TaskResult.createError(watchable, throwable);
       } finally {
+        // watchable stop will interrupt the thread in case of unfinished completion
         watchable.stop();
         statistics.stopCall(memento);
       }
     }
-    // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
-    watchable.taskFinished(taskResult);
     return taskResult;
+  }
 
+  /**
+   * @return the result of no exception
+   * @throws InterruptedException in case of an interrupt
+   * @throws ExecutionException in case of an execution exception
+   * @throws TimeoutException in case of a timeout
+   */
+  private <OUT> OUT submitStartedWatchableAndWaitForResult(long timeoutInMilliseconds, Watchable<OUT> watchable) throws InterruptedException, ExecutionException, TimeoutException {
+    Future<OUT> future = workerPool.submit(watchable);
+    OUT result;
+    if (timeoutInMilliseconds != 0) {
+      result = future.get(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+    } else {
+      result = future.get();
+    }
+    return result;
   }
 
   private <OUT> TaskResult<OUT> startWatchable(Watchable<OUT> watchable) {

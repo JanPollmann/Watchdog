@@ -11,27 +11,27 @@ import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 interface Stoppable {
 
   /**
-   * Internal support function
+   * Internal support function. Interrupt the worker if required
    *
-   * BEWARE: {@link Watchable} are copied if required
+   * BEWARE: {@link Watchable}s are copied if required
    *
-   * @throws InterruptedException jf interrupted
+   * @throws InterruptedException if externally interrupted (use case: {@link Watchable} does not respond to an interrupt)
    */
   void stop() throws InterruptedException;
 
   /**
    * Internal support function
    *
-   * BEWARE: {@link Watchable} are copied if required
+   * BEWARE: {@link Watchable}s are copied if required
    *
    * @return stopped or not
    */
   boolean stopped();
 
   /**
-   * Internal support function
+   * Internal support function. Makes sure the watchable is executed exactly once
    *
-   * BEWARE: {@link Watchable} are copied if required
+   * BEWARE: {@link Watchable}s are copied if required
    * @throws WatchableNotRepeatableException if the watchable was already started
    */
   void start() throws WatchableNotRepeatableException;

@@ -34,7 +34,7 @@ public class ResultCounter<OUT> implements StoreResult<OUT> {
   }
 
   @Override
-  public void accept(TaskResult<OUT> taskResult) {
+  public void accept(TaskResult<OUT> taskResult) throws InterruptedException {
     Assertions.assertNotNull(taskResult);
     Assertions.assertNotNull(taskResult.getCode());
     Assertions.assertNotNull(taskResult.getWatchable());

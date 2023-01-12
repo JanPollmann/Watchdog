@@ -16,7 +16,7 @@ public interface Watchable<OUT> extends Callable<OUT>, Stoppable, Repeatable<OUT
    * @param taskResult the task result
    * @see WatchableBuilder#withResultConsumer(ResultConsumer) withResultConsumer - delegate the result
    */
-  void taskFinished(TaskResult<OUT> taskResult);
+  void taskFinished(TaskResult<OUT> taskResult) throws InterruptedException;
 
   static WatchableBuilder<Object, Object, ExceptionRunnable, Watchable<Object>> builder(ExceptionRunnable task) {
     return WatchableRunnable.builder(task);

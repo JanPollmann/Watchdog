@@ -24,11 +24,11 @@ abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
   }
 
   @Override
-  public final void taskFinished(TaskResult<OUT> taskResult) {
+  public final void taskFinished(TaskResult<OUT> taskResult) throws InterruptedException {
     resultConsumer.accept(taskResult);
   }
 
-  private static void emptyConsumer(TaskResult<?> taskResult) {
+  private static void emptyConsumer(TaskResult<?> taskResult) throws InterruptedException {
 
   }
 
@@ -51,7 +51,10 @@ abstract class WatchableWithResultConsumer<OUT> implements Watchable<OUT> {
       try {
         return wrappedCall();
       } finally {
+        // make sure that we don't interrupt the pool thread while the watchable is already completed!
         callerThread = null;
+        // finish the call, stopped is 0 after this call
+        // this will notify "await" in #stop
         stopped.countDown();
       }
     } else {
