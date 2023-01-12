@@ -21,7 +21,7 @@ if (user != null && key != null) {
                 pom {
                     name = 'Watchdog'
                     description = 'A function call watchdog for java'
-
+                    url = 'https://github.com/JanPollmann/Watchdog'
                     licenses {
                         license {
                             name = 'The Unlicense'
