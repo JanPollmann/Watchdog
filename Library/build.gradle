@@ -16,7 +16,7 @@ if (user != null && key != null) {
             gpr(MavenPublication) {
                 groupId = 'de.pollmann.Watchdog'
                 artifactId = 'Watchdog'
-                version = '0.0.2'
+                version = '0.0.1-alpha1'
 
                 from components.java
 
