@@ -1,4 +1,4 @@
-= Java (repeated) function call support
+= Java 8 (repeated) function call support
 Jan Pollmann <pollmannjanf@gmail.com>
 :compat-mode!:
 :url-org: https://github.com/JanPollmann
