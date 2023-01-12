@@ -26,8 +26,6 @@ class WatchdogWorker {
 
   public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
     TaskResult<OUT> taskResult = callWatchable(timeoutInMilliseconds, watchable, statistics);
-    // TODO: make the ResultConsumer a watchable & monitor the result consumer as well? => user defines the result timeout
-    // TODO: an alternative might be: #submitFunctionCall calls #waitForCompletion as watchable => 2 times the same timeout
     // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
     watchable.taskFinished(taskResult);
     return taskResult;
