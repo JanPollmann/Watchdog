@@ -1,9 +1,44 @@
 plugins {
     id 'watchdog.library-conventions'
+    id 'watchdog.publication-conventions'
 }
 
-group 'de.pollmann.Watchdog'
-version '0.0.1'
+if (project.findProperty("gpr.user")) {
+    publishing {
+        publications {
+            gpr(MavenPublication) {
+                groupId = 'de.pollmann.Watchdog'
+                artifactId = 'Watchdog'
+                version = '0.0.1'
+
+                from components.java
+
+                pom {
+                    name = 'Watchdog'
+                    description = 'A function call watchdog for java'
+
+                    licenses {
+                        license {
+                            name = 'The Unlicense'
+                            url = 'https://unlicense.org'
+                        }
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/JanPollmann/Watchdog")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+                }
+            }
+        }
+    }
+}
 
 dependencies {
 

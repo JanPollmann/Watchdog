@@ -1,0 +1,4 @@
+plugins {
+    id 'watchdog.java-conventions'
+    id 'maven-publish'
+}
