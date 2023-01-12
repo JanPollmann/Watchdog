@@ -3,14 +3,10 @@ plugins {
     id 'watchdog.publication-conventions'
 }
 
-def local_gradle = 'local.gradle'
-if (project.file(local_gradle).exists()) {
-    println "apply from local gradle ..."
-    apply from: local_gradle
-
+if (project.findProperty("gpr.user")) {
     publishing {
         publications {
-            maven(MavenPublication) {
+            gpr(MavenPublication) {
                 groupId = 'de.pollmann.Watchdog'
                 artifactId = 'Watchdog'
                 version = '0.0.1'
@@ -33,7 +29,12 @@ if (project.file(local_gradle).exists()) {
 
         repositories {
             maven {
-                url = ""
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/JanPollmann/Watchdog")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+                }
             }
         }
     }
