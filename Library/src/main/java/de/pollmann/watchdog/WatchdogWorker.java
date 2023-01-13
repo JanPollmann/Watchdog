@@ -2,8 +2,8 @@ package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 import de.pollmann.watchdog.tasks.Watchable;
-import de.pollmann.watchdog.util.statistics.Memento;
 import de.pollmann.watchdog.util.statistics.StatisticsIntern;
+import de.pollmann.watchdog.util.statistics.TimestampProvider;
 
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -25,11 +25,13 @@ class WatchdogWorker {
   }
 
   public <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics) throws InterruptedException {
-    Memento memento = statistics.initialize();
+    TimestampProvider.TimestampSetter memento = statistics.initialize();
     try {
       TaskResult<OUT> taskResult = callWatchable(watchableOptions, watchable, statistics, memento);
       // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
+      memento.beginResultConsuming();
       watchable.taskFinished(taskResult);
+      memento.stopResultConsuming();
       return taskResult;
     } finally {
       statistics.finished(memento);
@@ -44,11 +46,11 @@ class WatchdogWorker {
    * @return the result of no exception
    * @throws InterruptedException in case of an interrupt
    */
-  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics, Memento memento) throws InterruptedException {
+  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics, TimestampProvider.TimestampSetter memento) throws InterruptedException {
     TaskResult<OUT> taskResult = startWatchable(watchable);
     if (taskResult == null) {
       // this area can only be entered by one thread! see startWatchable => Watchable#start
-      statistics.beginCall(memento);
+      memento.beginCall();
       try {
         OUT result = submitStartedWatchableAndWaitForResult(watchableOptions.getTimeoutInMilliseconds(), watchable);
         taskResult = TaskResult.createOK(watchable, result);
@@ -59,7 +61,7 @@ class WatchdogWorker {
       } finally {
         // watchable stop will interrupt the thread in case of unfinished completion
         watchable.stop();
-        statistics.stopCall(memento);
+        memento.stopCall();
       }
     }
     return taskResult;

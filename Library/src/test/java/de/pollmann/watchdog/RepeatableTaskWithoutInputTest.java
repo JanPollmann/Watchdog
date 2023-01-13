@@ -56,6 +56,9 @@ class RepeatableTaskWithoutInputTest {
     // two runnable's are submitted
     // 2 loops / 10 seconds = 0.2
     Assertions.assertEquals(0.2, repeated.getCallsPerSecond());
+    Assertions.assertNotEquals(0, repeated.getAverageApproximatedCallTime());
+    Assertions.assertNotEquals(0, repeated.getAverageApproximatedResultConsumingTime());
+    Assertions.assertNotEquals(0, repeated.getAverageTime());
   }
 
   @Test

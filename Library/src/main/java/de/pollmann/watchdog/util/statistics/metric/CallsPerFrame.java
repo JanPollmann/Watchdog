@@ -1,13 +1,10 @@
 package de.pollmann.watchdog.util.statistics.metric;
 
-import de.pollmann.watchdog.util.statistics.Memento;
-
-import java.util.concurrent.atomic.AtomicLong;
+import de.pollmann.watchdog.util.statistics.TimestampProvider;
 
 public class CallsPerFrame extends Metric {
 
   private final long[] data;
-  private final AtomicLong finishedInCurrentFrame = new AtomicLong(0);
 
   private volatile double callsPerSecond;
 
@@ -17,14 +14,14 @@ public class CallsPerFrame extends Metric {
   }
 
   @Override
-  public void frameFinished(int historyIndex) {
-    data[historyIndex] = finishedInCurrentFrame.getAndSet(0);
+  public void frameFinished(int historyIndex, int finishedInCurrentFrame) {
+    data[historyIndex] = finishedInCurrentFrame;
     callsPerSecond = calculateAverageOf(data);
   }
 
   @Override
-  public void mementoFinished(Memento memento) {
-    finishedInCurrentFrame.incrementAndGet();
+  public void mementoFinished(TimestampProvider memento) {
+
   }
 
   @Override

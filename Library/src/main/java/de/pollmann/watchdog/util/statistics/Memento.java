@@ -1,8 +1,8 @@
 package de.pollmann.watchdog.util.statistics;
 
-public class Memento {
+public class Memento implements TimestampProvider.TimestampSetter {
 
-  private final long start;
+  private final Long start;
 
   private Long end;
   private Long beginCall;
@@ -11,27 +11,51 @@ public class Memento {
   private Long stopResultConsuming;
 
   public Memento() {
-    start = System.currentTimeMillis();
+    start = System.nanoTime();
   }
 
-  void beginCall() {
-    beginCall = System.currentTimeMillis();
+  public void beginCall() {
+    beginCall = System.nanoTime();
   }
 
-  void stopCall() {
-    stopCall = System.currentTimeMillis();
+  public void stopCall() {
+    stopCall = System.nanoTime();
   }
 
-  void beginResultConsuming() {
-    beginResultConsuming = System.currentTimeMillis();
+  public void beginResultConsuming() {
+    beginResultConsuming = System.nanoTime();
   }
 
-  void stopResultConsuming() {
-    stopResultConsuming = System.currentTimeMillis();
+  public void stopResultConsuming() {
+    stopResultConsuming = System.nanoTime();
   }
 
-  void finished() {
-    end = System.currentTimeMillis();
+  public void finished() {
+    end = System.nanoTime();
+  }
+
+  public Long getStart() {
+    return start;
+  }
+
+  public Long getEnd() {
+    return end;
+  }
+
+  public Long getBeginCall() {
+    return beginCall;
+  }
+
+  public Long getStopCall() {
+    return stopCall;
+  }
+
+  public Long getBeginResultConsuming() {
+    return beginResultConsuming;
+  }
+
+  public Long getStopResultConsuming() {
+    return stopResultConsuming;
   }
 
 }

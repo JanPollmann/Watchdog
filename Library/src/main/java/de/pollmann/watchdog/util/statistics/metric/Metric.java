@@ -1,6 +1,6 @@
 package de.pollmann.watchdog.util.statistics.metric;
 
-import de.pollmann.watchdog.util.statistics.Memento;
+import de.pollmann.watchdog.util.statistics.TimestampProvider;
 
 import java.util.Arrays;
 
@@ -16,9 +16,13 @@ public abstract class Metric {
     return Arrays.stream(array).sum() / (double) historySize;
   }
 
-  public abstract void mementoFinished(Memento memento);
+  protected double calculateAverageOf(double[] array) {
+    return Arrays.stream(array).sum() / (double) historySize;
+  }
 
-  public abstract void frameFinished(int historyIndex);
+  public abstract void mementoFinished(TimestampProvider memento);
+
+  public abstract void frameFinished(int historyIndex, int finishedInCurrentFrame);
 
   public abstract double get();
 

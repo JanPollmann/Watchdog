@@ -66,7 +66,13 @@ public abstract class FastLoopApp {
               // print statistics (statistics are enabled for the Repeated Task "mainLoop"!)
               if (lastLoopsPerSecond != mainLoop.getCallsPerSecond()) {
                 lastLoopsPerSecond = mainLoop.getCallsPerSecond();
-                System.out.printf("Current loops per second: %.2f%n", lastLoopsPerSecond);
+                System.out.printf("Current loops per second: %.2f (Call: %.4f ns, Result: %.4f ns, Overhead: %.4f - %.2f%%) ns%n",
+                  lastLoopsPerSecond,
+                  mainLoop.getAverageApproximatedCallTime(),
+                  mainLoop.getAverageApproximatedResultConsumingTime(),
+                  mainLoop.getAverageApproximatedOverhead(),
+                  mainLoop.getRelativeAverageApproximatedOverhead() * 100
+                );
               }
               // The main loop continues as long as this condition is true
               if (result.getCode() != ResultCode.OK || !Objects.equals(result.getResult(), OK)) {
@@ -111,7 +117,7 @@ public abstract class FastLoopApp {
    *
    * @param taskResult the result of the main loop (NOT the taskResult of {@link #loop()}!)
    */
-  public void onExit(TaskResult<Integer> taskResult) {
+  public void onExit(TaskResult<Integer> taskResult) throws InterruptedException {
     System.out.println("exit");
   }
 
@@ -120,8 +126,8 @@ public abstract class FastLoopApp {
    *
    * @param taskResult the taskResult of {@link #loop()}
    */
-  public void onLoopFinished(TaskResult<Integer> taskResult) {
-
+  public void onLoopFinished(TaskResult<Integer> taskResult) throws InterruptedException {
+    Thread.sleep(1);
   }
 
 }
