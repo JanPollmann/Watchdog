@@ -40,8 +40,8 @@ if (Thread.interrupted()) {
 === Setup
 1. Import the `Library` in your project (see instructions bellow)
 2. Create & store a `WatchdogFactory`. Each factory stores two `ExecutorServices`
-3. Use `Watchable.builder(...)` to create a watchable +
-optional: add a `ResultProcessor` +
+3. Use `Watchable.builder(...)` to create a watchable and `WatchableOptions.builder(...)` to create the options +
+_optional_: add a `ResultProcessor` *(this callback not monitored)* +
 4. Create an asynchronous function call with `WatchdogFactory#submitFunctionCall`, a synchronized function call using `WatchdogFactory#waitForCompletion` or create a `RepeatableTask` with `WatchdogFactory#createRepeated`
 5. In case of a RepeatableTask call the task with `RepeatableTask#submitFunctionCall` and `RepeatableTask#waitForCompletion`
 
