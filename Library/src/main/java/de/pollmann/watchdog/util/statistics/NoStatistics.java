@@ -10,8 +10,13 @@ import de.pollmann.watchdog.tasks.Watchable;
 public class NoStatistics implements StatisticsIntern {
 
   @Override
-  public Memento beginCall() {
+  public Memento initialize() {
     return null;
+  }
+
+  @Override
+  public void beginCall(Memento state) {
+
   }
 
   @Override
@@ -20,7 +25,23 @@ public class NoStatistics implements StatisticsIntern {
   }
 
   @Override
+  public void beginResultConsuming(Memento state) {
+
+  }
+
+  @Override
+  public void stopResultConsuming(Memento state) {
+
+  }
+
+  @Override
+  public void finished(Memento state) {
+
+  }
+
+  @Override
   public double getCallsPerSecond() {
     return 0;
   }
+
 }

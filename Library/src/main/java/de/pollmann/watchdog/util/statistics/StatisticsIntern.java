@@ -1,17 +1,13 @@
 package de.pollmann.watchdog.util.statistics;
 
+/**
+ * Internal statistics API
+ */
 public interface StatisticsIntern extends Statistics {
-  /**
-   * The library calls this function as soon as the function call starts
-   *
-   * @return the memento
-   */
-  Memento beginCall();
-
-  /**
-   * The library calls this function as soon as the function call ends
-   *
-   * @param state the memento returned by {@link #beginCall()}
-   */
+  Memento initialize();
+  void beginCall(Memento state);
   void stopCall(Memento state);
+  void beginResultConsuming(Memento state);
+  void stopResultConsuming(Memento state);
+  void finished(Memento state);
 }

@@ -25,10 +25,15 @@ class WatchdogWorker {
   }
 
   public <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics) throws InterruptedException {
-    TaskResult<OUT> taskResult = callWatchable(watchableOptions, watchable, statistics);
-    // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
-    watchable.taskFinished(taskResult);
-    return taskResult;
+    Memento memento = statistics.initialize();
+    try {
+      TaskResult<OUT> taskResult = callWatchable(watchableOptions, watchable, statistics, memento);
+      // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
+      watchable.taskFinished(taskResult);
+      return taskResult;
+    } finally {
+      statistics.finished(memento);
+    }
   }
 
   /**
@@ -39,11 +44,11 @@ class WatchdogWorker {
    * @return the result of no exception
    * @throws InterruptedException in case of an interrupt
    */
-  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics) throws InterruptedException {
+  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics, Memento memento) throws InterruptedException {
     TaskResult<OUT> taskResult = startWatchable(watchable);
     if (taskResult == null) {
       // this area can only be entered by one thread! see startWatchable => Watchable#start
-      Memento memento = statistics.beginCall();
+      statistics.beginCall(memento);
       try {
         OUT result = submitStartedWatchableAndWaitForResult(watchableOptions.getTimeoutInMilliseconds(), watchable);
         taskResult = TaskResult.createOK(watchable, result);
