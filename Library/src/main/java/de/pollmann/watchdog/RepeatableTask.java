@@ -1,28 +1,28 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.util.statistics.DefaultStatistics;
-import de.pollmann.watchdog.util.statistics.Memento;
+import de.pollmann.watchdog.util.statistics.DelegatingStatistics;
 import de.pollmann.watchdog.util.statistics.NoStatistics;
-import de.pollmann.watchdog.util.statistics.Statistics;
+import de.pollmann.watchdog.util.statistics.StatisticsIntern;
 
 import java.util.Objects;
 
-abstract class RepeatableTask implements Statistics {
+abstract class RepeatableTask extends DelegatingStatistics {
 
-  private final Statistics statistics;
-
+  protected final StatisticsIntern statistics;
   protected final WatchableOptions watchableOptions;
 
   private WatchdogWorker worker;
 
-  public RepeatableTask(WatchdogWorker worker, WatchableOptions watchableOptions) {
+  private RepeatableTask(StatisticsIntern statistics, WatchdogWorker worker, WatchableOptions watchableOptions) {
+    super(statistics);
     this.worker = Objects.requireNonNull(worker);
-    this.watchableOptions = watchableOptions;
-    if (watchableOptions.isMonitoringEnabled()) {
-      statistics = new DefaultStatistics();
-    } else {
-      statistics = new NoStatistics();
-    }
+    this.watchableOptions = Objects.requireNonNull(watchableOptions);
+    this.statistics = Objects.requireNonNull(statistics);
+  }
+
+  public RepeatableTask(WatchdogWorker worker, WatchableOptions watchableOptions) {
+    this(watchableOptions.isMonitoringEnabled() ? new DefaultStatistics() : new NoStatistics(), worker, watchableOptions);
   }
 
   public final void terminate() {
@@ -37,21 +37,6 @@ abstract class RepeatableTask implements Statistics {
       return true;
     }
     return false;
-  }
-
-  @Override
-  public final Memento beginCall() {
-    return statistics.beginCall();
-  }
-
-  @Override
-  public final void stopCall(Memento memento) {
-    statistics.stopCall(memento);
-  }
-
-  @Override
-  public final double getCallsPerSecond() {
-    return statistics.getCallsPerSecond();
   }
 
   protected final WatchdogWorker getWorkerIfAvailable() {

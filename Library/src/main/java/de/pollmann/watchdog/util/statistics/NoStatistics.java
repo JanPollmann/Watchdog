@@ -1,13 +1,23 @@
 package de.pollmann.watchdog.util.statistics;
 
-public class NoStatistics implements Statistics {
+import de.pollmann.watchdog.WatchableOptions;
+import de.pollmann.watchdog.WatchdogFactory;
+import de.pollmann.watchdog.tasks.Watchable;
+
+/**
+ *  Do nothing implementation for {@link WatchdogFactory#waitForCompletion(WatchableOptions, Watchable)} or {@link WatchdogFactory#submitFunctionCall(WatchableOptions, Watchable)}
+ */
+public class NoStatistics implements StatisticsIntern {
+
+  private static final NoMemento NO_MEMENTO = new NoMemento();
+
   @Override
-  public Memento beginCall() {
-    return null;
+  public TimestampProvider.TimestampSetter initialize() {
+    return NO_MEMENTO;
   }
 
   @Override
-  public void stopCall(Memento state) {
+  public void finished(TimestampProvider.TimestampSetter state) {
 
   }
 
@@ -15,4 +25,20 @@ public class NoStatistics implements Statistics {
   public double getCallsPerSecond() {
     return 0;
   }
+
+  @Override
+  public double getAverageApproximatedCallTime() {
+    return 0;
+  }
+
+  @Override
+  public double getAverageApproximatedResultConsumingTime() {
+    return 0;
+  }
+
+  @Override
+  public double getAverageTime() {
+    return 0;
+  }
+
 }

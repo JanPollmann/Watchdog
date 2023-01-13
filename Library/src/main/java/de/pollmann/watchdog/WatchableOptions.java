@@ -1,5 +1,7 @@
 package de.pollmann.watchdog;
 
+import de.pollmann.watchdog.tasks.Watchable;
+
 public class WatchableOptions {
   private final long timeoutInMilliseconds;
   private final boolean monitoringEnabled;
@@ -30,9 +32,10 @@ public class WatchableOptions {
     }
 
     /**
-     * Enable statistics
+     * Enable statistics for repeatable tasks. Ignored in case of {@link WatchdogFactory#waitForCompletion(WatchableOptions, Watchable)} or {@link WatchdogFactory#submitFunctionCall(WatchableOptions, Watchable)}
      *
      * @return the builder for chaining
+     * @see de.pollmann.watchdog.util.statistics.Statistics for more information
      */
     public Builder enableStatistics() {
       monitoringEnabled = true;
