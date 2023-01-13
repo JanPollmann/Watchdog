@@ -16,19 +16,13 @@ endif::[]
 :url-create-github-token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
 :url-packages: {url-repo}/packages
 
-Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
+Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with one of the following `ResultCode`:
 
 * `ResultCode.OK` The execution is completed without exception and the result can be obtained with `TaskResult#getResult`
 * `ResultCode.TIMEOUT` The function call was *NOT* completed, the task was canceled
 * ResultCode.ERROR` An unexpected exception has occurred. The exception can be determined with `TaskResult#getErrorReason`.
 
 == Quick start
-[CAUTION]
-====
-still under construction! The API might still change a bit (hopefully it will become even better!).
-
-In case of bugs, please create an issue. Gladly also together with a small example.
-====
 This library supports `Runnable`, `Callable`, `Consumer` and `Function`. When a timeout occurs, the worker thread is `interrupted`. Be careful to handle the interruption properly, otherwise a thread of an `ExecutorService` (=> your function) could end up in an infinite loop (=> examples). One way to handle an interruption is as follows:
 [source, java]
 ----
@@ -38,7 +32,7 @@ if (Thread.interrupted()) {
 ----
 
 === Setup
-1. Import the `Library` in your project (see instructions bellow)
+1. Import the `Library` in your project (see instructions below)
 2. Create & store a `WatchdogFactory`. Each factory stores two `ExecutorServices`
 3. Use `Watchable.builder(...)` to create a watchable and `WatchableOptions.builder(...)` to create the options +
 _optional_: add a `ResultProcessor` to the watchable builder *(this callback not monitored)* +
@@ -63,7 +57,7 @@ dependencies {
     implementation 'de.pollmann.watchdog:watchdog:<version>'
 }
 ----
-do not forget to add your credentials as follows in your `~/.gradle/gradle.properties`, otherwise you cannot download the library:
+Do not forget to add your credentials as follows in your `~/.gradle/gradle.properties` otherwise you cannot download the library:
 [source]
 ----
 gpr.user=<YourUser>
@@ -80,10 +74,10 @@ Follow the GitHub documentation of the desired package:
 [CAUTION]
 ====
 * Please remind: `ResultProcessor` (if specified) will be called *after* the monitored function call *without any timeout*. If there is heavy computational work, the call will take longer as specified (or will not terminate if there is an infinite loop)
-** Obviously you could execute a `RepeatableTask` as `ResultProcessor` :)
+** Obviously, you could execute a `RepeatableTask` as `ResultProcessor` :)
 * The timeout is specified in milliseconds
 ** A timeout of 0 ms will be handled as `no timeout`
-* For not repeated function calls, the input of a function/consumer is passed in the builder!
+* For not repeated function calls, the input of a function/consumer is passed to the builder!
 * As soon as the internal worker of the `WatchdogFactory` gets garbage collected, `ExecutorServices#shutdown` is called for every `ExecutorServices` (finalize)
 ** A `RepeatableTask` has a reference to the internal worker
 ** To terminate the RepeatableTask call `RepeatableTask#terminate`
