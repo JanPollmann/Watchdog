@@ -1,4 +1,2 @@
-== Changelog
-
 === v0.1.0
 * introduced `WatchableOptions`, old API is deprecated (see java doc instruction)
