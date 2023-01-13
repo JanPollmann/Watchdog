@@ -1,9 +1,6 @@
 package de.pollmann.watchdog.tester.app;
 
-import de.pollmann.watchdog.RepeatableTaskWithoutInput;
-import de.pollmann.watchdog.ResultCode;
-import de.pollmann.watchdog.TaskResult;
-import de.pollmann.watchdog.WatchdogFactory;
+import de.pollmann.watchdog.*;
 import de.pollmann.watchdog.tasks.Watchable;
 
 import java.util.Objects;
@@ -28,13 +25,15 @@ public abstract class FastLoopApp {
     context = appContext;
     coreFactory = new WatchdogFactory("core");
     // create the main loop callable with enabled statistics
-    mainLoop = coreFactory.createRepeated(context.getLoopTimeout(), true, Watchable.builder(this::loop)
+    mainLoop = coreFactory.createRepeated(WatchableOptions.builder(context.getLoopTimeout())
+      // enable statistics
+      .enableStatistics().build(),
+      Watchable.builder(this::loop)
       // register a loop finished listener
-      .withResultConsumer(this::onLoopFinished)
-      .build()
+      .withResultConsumer(this::onLoopFinished).build()
     );
     // timeout example
-    timeout = coreFactory.createRepeated(10, Watchable.builder(this::timeout).build());
+    timeout = coreFactory.createRepeated(WatchableOptions.builder(10).build(), Watchable.builder(this::timeout).build());
   }
 
   /**
@@ -43,7 +42,7 @@ public abstract class FastLoopApp {
   public final void start() {
     // timeout 0: no timeout, block as long as the task takes
     try {
-      coreFactory.waitForCompletion(0,
+      coreFactory.waitForCompletion(WatchableOptions.builder(0).build(),
           Watchable.builder(() -> {
             TaskResult<Integer> result;
             boolean stop = false;

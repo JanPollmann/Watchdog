@@ -57,7 +57,7 @@ public class RepeatableTaskTest {
       super(new WatchdogWorker(
         watchdogPool,
         workerPool
-      ), false);
+      ), WatchableOptions.builder(0).build());
       this.watchdogPool = watchdogPool;
       this.workerPool = workerPool;
     }

@@ -19,7 +19,7 @@ class WatchdogFactoryWithExecutorServiceTest {
   void runnable_endlessLoop_TIMEOUT() throws InterruptedException {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), Watchable.builder(() -> {
       while (true) {
         if (Thread.interrupted()) {
           throw new InterruptedException();
@@ -48,7 +48,7 @@ class WatchdogFactoryWithExecutorServiceTest {
   void callable_endlessLoop_TIMEOUT() throws InterruptedException {
     WatchdogFactory watchdogFactory = withSingleThreadExecutor();
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(() -> {
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), Watchable.builder(() -> {
       boolean continueLoop = true;
       while (continueLoop) {
         if (Thread.interrupted()) {
@@ -88,7 +88,7 @@ class WatchdogFactoryWithExecutorServiceTest {
       }
     }).build();
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, runnable));
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), runnable));
 
     runnable = Watchable.builder(() -> {
       int i = 1;
@@ -103,9 +103,9 @@ class WatchdogFactoryWithExecutorServiceTest {
       }
     }).build();
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, runnable));
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), runnable));
 
-    assertNotRepeatable(watchdogFactory.waitForCompletion(1000, runnable));
+    assertNotRepeatable(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), runnable));
   }
 
   @Test
@@ -155,7 +155,7 @@ class WatchdogFactoryWithExecutorServiceTest {
       return null;
     };
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), Watchable.builder(callable).build()));
 
     callable = () -> {
       int i = 1;
@@ -171,12 +171,12 @@ class WatchdogFactoryWithExecutorServiceTest {
       return null;
     };
 
-    assertTimeout(watchdogFactory.waitForCompletion(1000, Watchable.builder(callable).build()));
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), Watchable.builder(callable).build()));
 
     Watchable<?> watchable = Watchable.builder(callable).build();
-    assertTimeout(watchdogFactory.waitForCompletion(1000, watchable));
+    assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), watchable));
 
-    assertNotRepeatable(watchdogFactory.waitForCompletion(1000, watchable));
+    assertNotRepeatable(watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), watchable));
   }
 
   @Test
@@ -234,9 +234,9 @@ class WatchdogFactoryWithExecutorServiceTest {
     };
 
     List<Future<?>> futures = new ArrayList<>();
-    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(runnable).build()));
-    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(runnable).build()));
-    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(runnable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(WatchableOptions.builder(1000).build(), Watchable.builder(runnable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(WatchableOptions.builder(1000).build(), Watchable.builder(runnable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(WatchableOptions.builder(1000).build(), Watchable.builder(runnable).build()));
 
     while (!futuresFinished(futures)) {
       try {
@@ -267,9 +267,9 @@ class WatchdogFactoryWithExecutorServiceTest {
     };
 
     List<Future<?>> futures = new ArrayList<>();
-    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(callable).build()));
-    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(callable).build()));
-    futures.add(watchdogFactory.submitFunctionCall(1000, Watchable.builder(callable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(WatchableOptions.builder(1000).build(), Watchable.builder(callable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(WatchableOptions.builder(1000).build(), Watchable.builder(callable).build()));
+    futures.add(watchdogFactory.submitFunctionCall(WatchableOptions.builder(1000).build(), Watchable.builder(callable).build()));
 
     while (!futuresFinished(futures)) {
       try {

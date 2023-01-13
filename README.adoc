@@ -1,4 +1,4 @@
-= Java (repeated) function call support
+= Java 8 (repeated) function call support
 Jan Pollmann <pollmannjanf@gmail.com>
 :compat-mode!:
 :url-org: https://github.com/JanPollmann
@@ -14,6 +14,7 @@ endif::[]
 :path-test: Library/src/test/java/de/pollmann/watchdog/
 :path-test-sabotage: Library/src/test/java/de/pollmann/watchdog/SabotageTest.java
 :url-create-github-token: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+:url-packages: {url-repo}/packages
 
 Each function call has a timeout and terminates the execution. After each function call (even after a timeout or an exception) a `TaskResult` is created with on of the following `ResultCode`:
 
@@ -69,7 +70,11 @@ gpr.user=<YourUser>
 gpr.key=<YourToken>
 ----
 
-link: {url-create-github-token}
+Creating a GitHub token: {url-create-github-token}
+
+==== Maven
+Follow the GitHub documentation of the desired package:
+{url-packages}
 
 === Important
 [CAUTION]
@@ -84,6 +89,8 @@ link: {url-create-github-token}
 ** To terminate the RepeatableTask call `RepeatableTask#terminate`
 ** A terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
 ====
+
+include::CHANGELOG.adoc[]
 
 == Example
 Just implement `loop`. Remarks:

@@ -5,7 +5,7 @@ import de.pollmann.watchdog.TaskResult;
 import java.util.concurrent.Callable;
 
 /**
- * The Scheduled function is wrapped in a watchable. The watchable is unique per function call. To repeat the same call, use {@link de.pollmann.watchdog.WatchdogFactory#createRepeated(long, Watchable)}
+ * The Scheduled function is wrapped in a watchable. The watchable is unique per function call. To repeat the same call, use {@link de.pollmann.watchdog.WatchdogFactory#createRepeated(de.pollmann.watchdog.WatchableOptions, Watchable)}
  *
  * @param <OUT> the output of the function call (if any)
  */

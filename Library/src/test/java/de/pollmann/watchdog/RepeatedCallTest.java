@@ -34,7 +34,7 @@ public class RepeatedCallTest {
     }).build();
 
     for (int i = 0; i < REPEATED; i++) {
-      watchdogFactory.submitFunctionCall(100, watchable);
+      watchdogFactory.submitFunctionCall(WatchableOptions.builder(100).build(), watchable);
     }
     try {
       countDown.await();

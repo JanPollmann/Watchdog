@@ -14,14 +14,14 @@ if (user != null && key != null) {
             gpr(MavenPublication) {
                 groupId = 'de.pollmann.watchdog'
                 artifactId = 'watchdog'
-                version = '0.1.0-alpha1'
+                version = '0.1.0-alpha2'
 
                 from components.java
 
                 pom {
                     name = 'Watchdog'
                     description = 'A function call watchdog for java'
-
+                    url = 'https://github.com/JanPollmann/Watchdog'
                     licenses {
                         license {
                             name = 'The Unlicense'

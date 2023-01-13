@@ -11,10 +11,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
-public class WatchdogFactory {
+public class WatchdogFactory implements WatchdogFactoryExtension {
 
   private final WatchdogWorker worker;
-  private final Statistics statistics = new NoStatistics();
+  private final Statistics noStatistics = new NoStatistics();
 
   /**
    * Create a factory with custom executor services, please note: numberOfThreads(watchdogPool) >= numberOfThreads(workerPool). The factory worker calls {@link ExecutorService#shutdown()} for both of them in {@link Object#finalize()}
@@ -73,6 +73,14 @@ public class WatchdogFactory {
     this(WatchdogFactory.class.getSimpleName());
   }
 
+  /**
+   * Create the default thread factory <br>
+   * - Every thread is a daemon thread {@link Thread#setDaemon(boolean)} <br>
+   * - Every thread is named 'threadPrefix:{@link System#currentTimeMillis()}' <br>
+   *
+   * @param threadPrefix name prefix
+   * @return a default thread factory
+   */
   public static ThreadFactory createDefaultThreadFactory(String threadPrefix) {
     Objects.requireNonNull(threadPrefix);
     return r -> {
@@ -82,84 +90,24 @@ public class WatchdogFactory {
     };
   }
 
-  /**
-   * Create a repeatable task with input and with disabled statistics
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param watchable watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return a repeatable task
-   * @see #createRepeated(long, boolean, WatchableWithInput)
-   * @throws IllegalArgumentException if the watchable requires input
-   */
-  public <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, WatchableWithInput<IN, OUT> watchable) {
-    return createRepeated(timeoutInMilliseconds, false, watchable);
+  @Override
+  public <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(WatchableOptions watchableOptions, WatchableWithInput<IN, OUT> watchable) {
+    return RepeatableTaskWithInput.create(worker, watchableOptions, watchable);
   }
 
-  /**
-   * Create a repeatable task with input
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param withStatistics enable/disable statistics
-   * @param watchable watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return a repeatable task
-   * @see #createRepeated(long, WatchableWithInput)
-   */
-  public <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, boolean withStatistics, WatchableWithInput<IN, OUT> watchable) {
-    return RepeatableTaskWithInput.create(worker, timeoutInMilliseconds, watchable, withStatistics);
+  @Override
+  public <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(WatchableOptions watchableOptions, Watchable<OUT> watchable) {
+    return RepeatableTaskWithoutInput.create(worker, watchableOptions, watchable);
   }
 
-  /**
-   * Create a repeatable task without input and with disabled statistics
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param watchable watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return a repeatable task
-   * @see #createRepeated(long, boolean, Watchable)
-   */
-  public <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, Watchable<OUT> watchable) {
-    return createRepeated(timeoutInMilliseconds, false, watchable);
+  @Override
+  public Future<?> submitFunctionCall(WatchableOptions watchableOptions, Watchable<?> watchable) {
+    return worker.submitFunctionCall(watchableOptions, watchable, noStatistics);
   }
 
-  /**
-   * Create a repeatable task without input
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param withStatistics enable/disable statistics
-   * @param watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return a repeatable task
-   * @see #createRepeated(long, Watchable)
-   * @throws IllegalArgumentException if the watchable requires input
-   */
-  public <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, boolean withStatistics, Watchable<OUT> watchable) {
-    return RepeatableTaskWithoutInput.create(worker, timeoutInMilliseconds, watchable, withStatistics);
-  }
-
-  /**
-   * Submit the watchable to an executor service
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param watchable watchable the watchable to invoke
-   * @return the future resulting from {@link ExecutorService#submit(java.util.concurrent.Callable)}}
-   */
-  public Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<?> watchable) {
-    return worker.submitFunctionCall(timeoutInMilliseconds, watchable, statistics);
-  }
-
-  /**
-   * Call the watchable directly (blocking call)
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return the task result
-   * @throws InterruptedException if the thread gets interrupted
-   */
-  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) throws InterruptedException {
-    return worker.waitForCompletion(timeoutInMilliseconds, watchable, statistics);
+  @Override
+  public <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable) throws InterruptedException {
+    return worker.waitForCompletion(watchableOptions, watchable, noStatistics);
   }
 
 }

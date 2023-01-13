@@ -2,6 +2,7 @@ package de.pollmann.watchdog.tester.tester;
 
 import de.pollmann.watchdog.RepeatableTaskWithoutInput;
 import de.pollmann.watchdog.ResultCode;
+import de.pollmann.watchdog.WatchableOptions;
 import de.pollmann.watchdog.WatchdogFactory;
 import de.pollmann.watchdog.tasks.Watchable;
 
@@ -15,7 +16,7 @@ public class RunnableOkTester extends CountableTest {
 
   public RunnableOkTester(WatchdogFactory factory) {
     super();
-    repeatable = factory.createRepeated(500, Watchable.builder(this::run)
+    repeatable = factory.createRepeated(WatchableOptions.builder(500).build(), Watchable.builder(this::run)
       .withResultConsumer(result -> this.taskFinished(result, ResultCode.OK))
       .build()
     );
