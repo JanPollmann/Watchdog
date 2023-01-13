@@ -66,7 +66,8 @@ public abstract class FastLoopApp {
               // print statistics (statistics are enabled for the Repeated Task "mainLoop"!)
               if (lastLoopsPerSecond != mainLoop.getCallsPerSecond()) {
                 lastLoopsPerSecond = mainLoop.getCallsPerSecond();
-                System.out.printf("Current loops per second: %.2f (Call: %.4f ns, Result: %.4f ns, Overhead: %.4f - %.2f%%) ns%n",
+                // the metrics are only valid after a few seconds, because the arrays have to fill with data first
+                System.out.printf("Current loops per second: %.2f (Call: %.4f ns, Result: %.4f ns, Overhead: %.4f ns - %.2f %%%n",
                   lastLoopsPerSecond,
                   mainLoop.getAverageApproximatedCallTime(),
                   mainLoop.getAverageApproximatedResultConsumingTime(),
