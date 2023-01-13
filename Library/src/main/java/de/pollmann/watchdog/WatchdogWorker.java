@@ -18,14 +18,14 @@ class WatchdogWorker {
     this.workerPool = Objects.requireNonNull(workerPool);
   }
 
-  public <OUT> Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) {
+  public <OUT> Future<?> submitFunctionCall(WatchableOptions options, Watchable<OUT> watchable, Statistics statistics) {
     return watchdogPool.submit(() ->
-      waitForCompletion(timeoutInMilliseconds, watchable, statistics)
+      waitForCompletion(options, watchable, statistics)
     );
   }
 
-  public <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
-    TaskResult<OUT> taskResult = callWatchable(timeoutInMilliseconds, watchable, statistics);
+  public <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
+    TaskResult<OUT> taskResult = callWatchable(watchableOptions, watchable, statistics);
     // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
     watchable.taskFinished(taskResult);
     return taskResult;
@@ -39,13 +39,13 @@ class WatchdogWorker {
    * @return the result of no exception
    * @throws InterruptedException in case of an interrupt
    */
-  private <OUT> TaskResult<OUT> callWatchable(long timeoutInMilliseconds, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
+  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
     TaskResult<OUT> taskResult = startWatchable(watchable);
     if (taskResult == null) {
       // this area can only be entered by one thread! see startWatchable => Watchable#start
       Memento memento = statistics.beginCall();
       try {
-        OUT result = submitStartedWatchableAndWaitForResult(timeoutInMilliseconds, watchable);
+        OUT result = submitStartedWatchableAndWaitForResult(watchableOptions.getTimeoutInMilliseconds(), watchable);
         taskResult = TaskResult.createOK(watchable, result);
       } catch (TimeoutException timeoutException) {
         taskResult = TaskResult.createTimeout(watchable, timeoutException);

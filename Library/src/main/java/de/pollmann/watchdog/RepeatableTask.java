@@ -11,11 +11,14 @@ abstract class RepeatableTask implements Statistics {
 
   private final Statistics statistics;
 
+  protected final WatchableOptions watchableOptions;
+
   private WatchdogWorker worker;
 
-  public RepeatableTask(WatchdogWorker worker, boolean monitored) {
+  public RepeatableTask(WatchdogWorker worker, WatchableOptions watchableOptions) {
     this.worker = Objects.requireNonNull(worker);
-    if (monitored) {
+    this.watchableOptions = watchableOptions;
+    if (watchableOptions.isMonitoringEnabled()) {
       statistics = new DefaultStatistics();
     } else {
       statistics = new NoStatistics();

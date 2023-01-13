@@ -64,14 +64,14 @@ public class ResultCounter<OUT> implements StoreResult<OUT> {
   public Watchable<Object> createDecoratedRunnable(ExceptionRunnable runnable) {
     //noinspection unchecked
     return Watchable.builder(runnable)
-            .withResultConsumer((ResultConsumer<Object>) this)
-            .build();
+      .withResultConsumer((ResultConsumer<Object>) this)
+      .build();
   }
 
   public Watchable<OUT> createDecoratedCallable(Callable<OUT> callable) {
     return Watchable.builder(callable)
-        .withResultConsumer(this)
-        .build();
+      .withResultConsumer(this)
+      .build();
   }
 
   public <IN> WatchableWithInput<IN, Object> createDecoratedConsumer(ExceptionConsumer<IN> consumer) {

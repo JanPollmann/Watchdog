@@ -9,24 +9,22 @@ import java.util.concurrent.Future;
 public class RepeatableTaskWithoutInput<OUT> extends RepeatableTask {
 
   private final Watchable<OUT> repeated;
-  private final long timeoutInMilliseconds;
 
-  private RepeatableTaskWithoutInput(WatchdogWorker worker, long timeoutInMilliseconds, Watchable<OUT> repeated, boolean monitored) {
-    super(worker, monitored);
+  private RepeatableTaskWithoutInput(WatchdogWorker worker, WatchableOptions watchableOptions, Watchable<OUT> repeated) {
+    super(worker, watchableOptions);
     this.repeated = Objects.requireNonNull(repeated);
-    this.timeoutInMilliseconds = timeoutInMilliseconds;
   }
 
-  static <OUT> RepeatableTaskWithoutInput<OUT> create(WatchdogWorker worker, long timeoutInMilliseconds, Watchable<OUT> watchable, boolean monitored) {
+  static <OUT> RepeatableTaskWithoutInput<OUT> create(WatchdogWorker worker, WatchableOptions watchableOptions, Watchable<OUT> watchable) {
     WatchdogUtils.throwExceptionIfInputRequired(watchable, "Cannot build a RepeatableTaskWithoutInput for a watchable with input.");
-    return new RepeatableTaskWithoutInput<>(worker, timeoutInMilliseconds, watchable, monitored);
+    return new RepeatableTaskWithoutInput<>(worker, watchableOptions, watchable);
   }
 
   public Future<?> submitFunctionCall() {
-    return getWorkerIfAvailable().submitFunctionCall(timeoutInMilliseconds, repeated.copy().build(), this);
+    return getWorkerIfAvailable().submitFunctionCall(watchableOptions, repeated.copy().build(), this);
   }
 
   public TaskResult<OUT> waitForCompletion() throws InterruptedException {
-    return getWorkerIfAvailable().waitForCompletion(timeoutInMilliseconds, repeated.copy().build(), this);
+    return getWorkerIfAvailable().waitForCompletion(watchableOptions, repeated.copy().build(), this);
   }
 }

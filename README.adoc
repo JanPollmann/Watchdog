@@ -90,6 +90,8 @@ Follow the GitHub documentation of the desired package:
 ** A terminated RepeatableTask will throw a `RepeatableTaskTerminatedException`!
 ====
 
+include::CHANGELOG.adoc[]
+
 == Example
 Just implement `loop`. Remarks:
 
