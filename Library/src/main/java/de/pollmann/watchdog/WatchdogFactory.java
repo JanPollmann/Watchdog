@@ -3,7 +3,7 @@ package de.pollmann.watchdog;
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.tasks.WatchableWithInput;
 import de.pollmann.watchdog.util.statistics.NoStatistics;
-import de.pollmann.watchdog.util.statistics.Statistics;
+import de.pollmann.watchdog.util.statistics.StatisticsIntern;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -14,7 +14,7 @@ import java.util.concurrent.ThreadFactory;
 public class WatchdogFactory implements WatchdogFactoryExtension {
 
   private final WatchdogWorker worker;
-  private final Statistics noStatistics = new NoStatistics();
+  private final StatisticsIntern noStatistics = new NoStatistics();
 
   /**
    * Create a factory with custom executor services, please note: numberOfThreads(watchdogPool) >= numberOfThreads(workerPool). The factory worker calls {@link ExecutorService#shutdown()} for both of them in {@link Object#finalize()}

@@ -1,16 +1,15 @@
 package de.pollmann.watchdog;
 
 import de.pollmann.watchdog.util.statistics.DefaultStatistics;
-import de.pollmann.watchdog.util.statistics.Memento;
 import de.pollmann.watchdog.util.statistics.NoStatistics;
 import de.pollmann.watchdog.util.statistics.Statistics;
+import de.pollmann.watchdog.util.statistics.StatisticsIntern;
 
 import java.util.Objects;
 
 abstract class RepeatableTask implements Statistics {
 
-  private final Statistics statistics;
-
+  protected final StatisticsIntern statistics;
   protected final WatchableOptions watchableOptions;
 
   private WatchdogWorker worker;
@@ -37,16 +36,6 @@ abstract class RepeatableTask implements Statistics {
       return true;
     }
     return false;
-  }
-
-  @Override
-  public final Memento beginCall() {
-    return statistics.beginCall();
-  }
-
-  @Override
-  public final void stopCall(Memento memento) {
-    statistics.stopCall(memento);
   }
 
   @Override

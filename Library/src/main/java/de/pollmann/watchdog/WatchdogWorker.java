@@ -3,7 +3,7 @@ package de.pollmann.watchdog;
 import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
 import de.pollmann.watchdog.tasks.Watchable;
 import de.pollmann.watchdog.util.statistics.Memento;
-import de.pollmann.watchdog.util.statistics.Statistics;
+import de.pollmann.watchdog.util.statistics.StatisticsIntern;
 
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -18,13 +18,13 @@ class WatchdogWorker {
     this.workerPool = Objects.requireNonNull(workerPool);
   }
 
-  public <OUT> Future<?> submitFunctionCall(WatchableOptions options, Watchable<OUT> watchable, Statistics statistics) {
+  public <OUT> Future<?> submitFunctionCall(WatchableOptions options, Watchable<OUT> watchable, StatisticsIntern statistics) {
     return watchdogPool.submit(() ->
       waitForCompletion(options, watchable, statistics)
     );
   }
 
-  public <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
+  public <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics) throws InterruptedException {
     TaskResult<OUT> taskResult = callWatchable(watchableOptions, watchable, statistics);
     // "taskFinished" is a user provided function. An infinite loop may stop the termination of this function call
     watchable.taskFinished(taskResult);
@@ -39,7 +39,7 @@ class WatchdogWorker {
    * @return the result of no exception
    * @throws InterruptedException in case of an interrupt
    */
-  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, Statistics statistics) throws InterruptedException {
+  private <OUT> TaskResult<OUT> callWatchable(WatchableOptions watchableOptions, Watchable<OUT> watchable, StatisticsIntern statistics) throws InterruptedException {
     TaskResult<OUT> taskResult = startWatchable(watchable);
     if (taskResult == null) {
       // this area can only be entered by one thread! see startWatchable => Watchable#start

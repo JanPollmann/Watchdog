@@ -7,7 +7,8 @@ import de.pollmann.watchdog.tasks.Watchable;
 /**
  *  Do nothing implementation for {@link WatchdogFactory#waitForCompletion(WatchableOptions, Watchable)} or {@link WatchdogFactory#submitFunctionCall(WatchableOptions, Watchable)}
  */
-public class NoStatistics implements Statistics {
+public class NoStatistics implements StatisticsIntern {
+
   @Override
   public Memento beginCall() {
     return null;

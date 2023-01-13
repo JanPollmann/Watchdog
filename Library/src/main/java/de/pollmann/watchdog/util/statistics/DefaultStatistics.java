@@ -3,7 +3,7 @@ package de.pollmann.watchdog.util.statistics;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class DefaultStatistics implements Statistics {
+public class DefaultStatistics implements StatisticsIntern {
 
   private static final int HISTORY_SIZE = 10;
   private static final double FRAME_SIZE = 1000d;

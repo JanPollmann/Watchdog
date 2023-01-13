@@ -21,10 +21,10 @@ public class RepeatableTaskWithoutInput<OUT> extends RepeatableTask {
   }
 
   public Future<?> submitFunctionCall() {
-    return getWorkerIfAvailable().submitFunctionCall(watchableOptions, repeated.copy().build(), this);
+    return getWorkerIfAvailable().submitFunctionCall(watchableOptions, repeated.copy().build(), statistics);
   }
 
   public TaskResult<OUT> waitForCompletion() throws InterruptedException {
-    return getWorkerIfAvailable().waitForCompletion(watchableOptions, repeated.copy().build(), this);
+    return getWorkerIfAvailable().waitForCompletion(watchableOptions, repeated.copy().build(), statistics);
   }
 }
