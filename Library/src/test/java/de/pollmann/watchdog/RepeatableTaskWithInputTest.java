@@ -113,17 +113,17 @@ class RepeatableTaskWithInputTest {
 
   private RepeatableTaskWithInput<Integer, Object> createConsumer(long timeoutInMilliseconds, boolean monitored, WatchableWithInput<Integer, Object> consumer) {
     if (monitored) {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, consumer);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).enableStatistics().build(), consumer);
     } else {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, consumer);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).build(), consumer);
     }
   }
 
   private RepeatableTaskWithInput<Integer, Integer> createFunction(long timeoutInMilliseconds, boolean monitored, WatchableWithInput<Integer, Integer> function) {
     if (monitored) {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, function);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).enableStatistics().build(), function);
     } else {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, function);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).build(), function);
     }
   }
 

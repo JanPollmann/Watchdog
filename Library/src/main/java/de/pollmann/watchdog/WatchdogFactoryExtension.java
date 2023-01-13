@@ -15,6 +15,7 @@ interface WatchdogFactoryExtension {
    * @param watchable the task to invoke
    * @param <OUT> the output type
    * @return a repeatable task
+   * @see #createRepeated(WatchableOptions, Watchable) for tasks without input
    */
   <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(WatchableOptions watchableOptions, WatchableWithInput<IN, OUT> watchable);
 
@@ -26,6 +27,7 @@ interface WatchdogFactoryExtension {
    * @param <OUT> the output type
    * @return a repeatable task
    * @throws IllegalArgumentException if the watchable requires input
+   * @see #createRepeated(WatchableOptions, WatchableWithInput) for tasks with input
    */
   <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(WatchableOptions watchableOptions, Watchable<OUT> watchable);
 
@@ -105,7 +107,6 @@ interface WatchdogFactoryExtension {
    * @param watchable the watchable to invoke
    * @param <OUT> the output type
    * @return a repeatable task
-   * @see #createRepeated(long, Watchable)
    * @throws IllegalArgumentException if the watchable requires input
    * @deprecated use {@link #createRepeated(WatchableOptions, Watchable)} instead
    */

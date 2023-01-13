@@ -44,11 +44,11 @@ public class SabotageTest {
     //    => interrupt
     //    => cancel the wrapped call but leaves the Thread of the Executor Service in an infinite loop
     //    => at some point the watchdogFactory does not have any thread remaining
-    TaskResult<?> wrappedCall = watchdogFactory.waitForCompletion(1300, Watchable.builder(() -> {
+    TaskResult<?> wrappedCall = watchdogFactory.waitForCompletion(WatchableOptions.builder(1300).build(), Watchable.builder(() -> {
       sabotageStarted.set(true);
       try {
         // timeout can NOT kill the Thread because the submitted task is not interruptable
-        TaskResult<?> neverCreated = watchdogFactory.waitForCompletion(1000, sabotage);
+        TaskResult<?> neverCreated = watchdogFactory.waitForCompletion(WatchableOptions.builder(1000).build(), sabotage);
         // the runnable does not respond to an interrupt => not stopped => infinite loop
         // unreachable ...
         sabotageStopped.set(true);
@@ -100,7 +100,7 @@ public class SabotageTest {
 
     for (int i = 0; i < 100; i++) {
       Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotageRunnable()).build();
-      assertTimeout(watchdogFactory.waitForCompletion(50, niceSabotage));
+      assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(50).build(), niceSabotage));
       // the runnable does respond to an interrupt => stopped => no endless loop
       Assertions.assertTrue(niceSabotage.stopped());
     }
@@ -114,7 +114,7 @@ public class SabotageTest {
 
     for (int i = 0; i < 100; i++) {
       Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotageConsumer()).build();
-      assertTimeout(watchdogFactory.waitForCompletion(50, niceSabotage));
+      assertTimeout(watchdogFactory.waitForCompletion(WatchableOptions.builder(50).build(), niceSabotage));
       // the runnable does respond to interrupts => stopped => no endless loop
       Assertions.assertTrue(niceSabotage.stopped());
     }
@@ -128,7 +128,7 @@ public class SabotageTest {
     Watchable<Object> niceSabotage =  Watchable.builder(new NiceSabotageRunnable())
       .withResultConsumer(result -> Assertions.assertTrue(result.getWatchable().stopped()))
       .build();
-    RepeatableTaskWithoutInput<Object> repeatable = watchdogFactory.createRepeated(50, niceSabotage);
+    RepeatableTaskWithoutInput<Object> repeatable = watchdogFactory.createRepeated(WatchableOptions.builder(50).build(), niceSabotage);
 
     for (int i = 0; i < 100; i++) {
       assertTimeout(repeatable.waitForCompletion());
@@ -143,7 +143,7 @@ public class SabotageTest {
     WatchableWithInput<Integer, Object> niceSabotage =  Watchable.builder(new NiceSabotageConsumer())
       .withResultConsumer(result -> Assertions.assertTrue(result.getWatchable().stopped()))
       .build();
-    RepeatableTaskWithInput<Integer, Object> repeatable = watchdogFactory.createRepeated(50, niceSabotage);
+    RepeatableTaskWithInput<Integer, Object> repeatable = watchdogFactory.createRepeated(WatchableOptions.builder(50).build(), niceSabotage);
 
     for (int i = 0; i < 100; i++) {
       assertTimeout(repeatable.waitForCompletion(i));

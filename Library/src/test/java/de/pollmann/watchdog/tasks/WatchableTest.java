@@ -1,5 +1,6 @@
 package de.pollmann.watchdog.tasks;
 
+import de.pollmann.watchdog.WatchableOptions;
 import de.pollmann.watchdog.WatchdogFactory;
 import de.pollmann.watchdog.exceptions.WatchableInIncorrectState;
 import de.pollmann.watchdog.exceptions.WatchableNotRepeatableException;
@@ -61,11 +62,11 @@ public class WatchableTest {
     }).withResultConsumer(result -> Assertions.fail()).build();
     Watchable<?> submittedCall = Watchable.builder(() -> {
       // this task cannot complete bcause of the internal task cannot complete!
-      watchdogFactory.waitForCompletion(10, endless);
+      watchdogFactory.waitForCompletion(WatchableOptions.builder(10).build(), endless);
       Assertions.fail();
     }).build();
 
-    Future<?> future = watchdogFactory.submitFunctionCall(100, submittedCall);
+    Future<?> future = watchdogFactory.submitFunctionCall(WatchableOptions.builder(100).build(), submittedCall);
     try {
       future.get(1000, TimeUnit.MILLISECONDS);
     } catch (ExecutionException e) {

@@ -108,17 +108,17 @@ class RepeatableTaskWithoutInputTest {
 
   private RepeatableTaskWithoutInput<Object> createRunnable(long timeoutInMilliseconds, boolean monitored, Watchable<Object> runnable) {
     if (monitored) {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, runnable);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).enableStatistics().build(), runnable);
     } else {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, runnable);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).build(), runnable);
     }
   }
 
   private RepeatableTaskWithoutInput<Integer> createCallable(long timeoutInMilliseconds, boolean monitored, Watchable<Integer> callable) {
     if (monitored) {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, true, callable);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).enableStatistics().build(), callable);
     } else {
-      return withSingleThreadExecutor().createRepeated(timeoutInMilliseconds, callable);
+      return withSingleThreadExecutor().createRepeated(WatchableOptions.builder(timeoutInMilliseconds).build(), callable);
     }
   }
 

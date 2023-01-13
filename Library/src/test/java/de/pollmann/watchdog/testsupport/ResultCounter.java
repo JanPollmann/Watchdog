@@ -1,6 +1,7 @@
 package de.pollmann.watchdog.testsupport;
 
 import de.pollmann.watchdog.TaskResult;
+import de.pollmann.watchdog.WatchableOptions;
 import de.pollmann.watchdog.WatchdogFactory;
 import de.pollmann.watchdog.tasks.*;
 import org.junit.jupiter.api.Assertions;
@@ -47,7 +48,7 @@ public class ResultCounter<OUT> implements StoreResult<OUT> {
   }
 
   public <IN, WATCHABLE extends Watchable<OUT>> TaskResult<OUT> submit(WatchdogFactory watchdogFactory, long timeoutInMilliseconds, WatchableBuilder<IN, OUT, ?, WATCHABLE> builder) {
-    Future<?> future = watchdogFactory.submitFunctionCall(timeoutInMilliseconds, builder
+    Future<?> future = watchdogFactory.submitFunctionCall(WatchableOptions.builder(timeoutInMilliseconds).build(), builder
       .withResultConsumer(this)
       .build());
     while (!future.isDone()) {
