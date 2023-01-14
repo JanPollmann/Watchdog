@@ -1,14 +1,11 @@
 = Java 8 (repeated) function call support
-Jan Pollmann <pollmannjanf@gmail.com>
+Jan Pollmann
 :compat-mode!:
 :url-org: https://github.com/JanPollmann
 :url-repo: {url-org}/Watchdog
-:url-rel-file-base: link:
-:url-rel-tree-base: link:
-ifdef::env-github[]
 :url-rel-file-base: {url-repo}/blob/HEAD/
 :url-rel-tree-base: {url-repo}/tree/HEAD/
-endif::[]
+:url-lib-module: {url-rel-tree-base}Library
 :path-example-1-FastLoopApp: Tester/src/main/java/de/pollmann/watchdog/tester/app/FastLoopApp.java
 :path-example-1-AppContext: Tester/src/main/java/de/pollmann/watchdog/tester/app/AppContext.java
 :path-test: Library/src/test/java/de/pollmann/watchdog/
@@ -20,7 +17,7 @@ Each function call has a timeout and terminates the execution. After each functi
 
 * `ResultCode.OK` The execution is completed without exception and the result can be obtained with `TaskResult#getResult`
 * `ResultCode.TIMEOUT` The function call was *NOT* completed, the task was canceled
-* ResultCode.ERROR` An unexpected exception has occurred. The exception can be determined with `TaskResult#getErrorReason`.
+* `ResultCode.ERROR` An unexpected exception has occurred. The exception can be determined with `TaskResult#getErrorReason`.
 
 == Quick start
 This library supports `Runnable`, `Callable`, `Consumer` and `Function`. When a timeout occurs, the worker thread is `interrupted`. Be careful to handle the interruption properly, otherwise a thread of an `ExecutorService` (=> your function) could end up in an infinite loop (=> examples). One way to handle an interruption is as follows:
@@ -40,6 +37,7 @@ _optional_: add a `ResultProcessor` to the watchable builder *(this callback not
 5. In case of a RepeatableTask call the task with `RepeatableTask#submitFunctionCall` and `RepeatableTask#waitForCompletion`
 
 === Import the Library
+
 ==== Gradle
 [source]
 ----
@@ -57,6 +55,10 @@ dependencies {
 ==== Maven
 Follow the GitHub documentation of the desired package:
 {url-packages}
+
+==== Sources
+Repo: {url-repo} +
+Module: {url-lib-module}
 
 === Important
 [CAUTION]
