@@ -7,7 +7,7 @@ conventions {
 }
 
 dependencies {
-//    implementation 'de.pollmann.watchdog:watchdog:0.1.0-alpha1'
+//    implementation 'de.pollmann.watchdog:watchdog:0.1.0'
     implementation project(':Library')
 }
 

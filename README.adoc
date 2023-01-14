@@ -46,10 +46,6 @@ _optional_: add a `ResultProcessor` to the watchable builder *(this callback not
 repositories {
     maven {
         url = uri("https://maven.pkg.github.com/JanPollmann/Watchdog")
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-        }
     }
 }
 
@@ -57,14 +53,6 @@ dependencies {
     implementation 'de.pollmann.watchdog:watchdog:<version>'
 }
 ----
-Do not forget to add your credentials as follows in your `~/.gradle/gradle.properties` otherwise you cannot download the library:
-[source]
-----
-gpr.user=<YourUser>
-gpr.key=<YourToken>
-----
-
-Creating a GitHub token: {url-create-github-token}
 
 ==== Maven
 Follow the GitHub documentation of the desired package:
