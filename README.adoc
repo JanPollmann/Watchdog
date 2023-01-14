@@ -1,5 +1,5 @@
 = Java 8 (repeated) function call support
-Jan Pollmann <pollmannjanf@gmail.com>
+Jan Pollmann
 :compat-mode!:
 :url-org: https://github.com/JanPollmann
 :url-repo: {url-org}/Watchdog
