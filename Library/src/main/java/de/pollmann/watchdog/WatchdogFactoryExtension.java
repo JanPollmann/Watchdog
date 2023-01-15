@@ -52,97 +52,54 @@ interface WatchdogFactoryExtension {
   <OUT> TaskResult<OUT> waitForCompletion(WatchableOptions watchableOptions, Watchable<OUT> watchable) throws InterruptedException;
 
   /**
-   * Create a repeatable task with input and with disabled statistics
+   * Create a repeatable task with input and default options
    *
    * @param timeoutInMilliseconds the timeout in milliseconds
    * @param watchable the watchable to invoke
    * @param <OUT> the output type
    * @return a repeatable task
-   * @deprecated use {@link #createRepeated(WatchableOptions, WatchableWithInput)} instead
+   * @see #createRepeated(WatchableOptions, WatchableWithInput) for more options
    */
-  @Deprecated
   default <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, WatchableWithInput<IN, OUT> watchable) {
     return createRepeated(WatchableOptions.builder(timeoutInMilliseconds).build(), watchable);
   }
 
   /**
-   * Create a repeatable task with input
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param withStatistics enable/disable statistics
-   * @param watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return a repeatable task
-   * @deprecated use {@link #createRepeated(WatchableOptions, WatchableWithInput)} instead
-   */
-  @Deprecated
-  default <IN, OUT> RepeatableTaskWithInput<IN, OUT> createRepeated(long timeoutInMilliseconds, boolean withStatistics, WatchableWithInput<IN, OUT> watchable) {
-    WatchableOptions.Builder builder = WatchableOptions.builder(timeoutInMilliseconds);
-    if (withStatistics) {
-      builder.enableStatistics();
-    }
-    return createRepeated(builder.build(), watchable);
-  }
-
-  /**
-   * Create a repeatable task without input and with disabled statistics
+   * Create a repeatable task without input and default options
    *
    * @param timeoutInMilliseconds the timeout in milliseconds
    * @param watchable watchable the watchable to invoke
    * @param <OUT> the output type
    * @return a repeatable task
    * @throws IllegalArgumentException if the watchable requires input
-   * @deprecated use {@link #createRepeated(WatchableOptions, Watchable)} instead
+   * @see #createRepeated(WatchableOptions, Watchable) for more options
    */
-  @Deprecated
   default  <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, Watchable<OUT> watchable) {
     return createRepeated(WatchableOptions.builder(timeoutInMilliseconds).build(), watchable);
   }
 
   /**
-   * Create a repeatable task without input
-   *
-   * @param timeoutInMilliseconds the timeout in milliseconds
-   * @param withStatistics enable/disable statistics
-   * @param watchable the watchable to invoke
-   * @param <OUT> the output type
-   * @return a repeatable task
-   * @throws IllegalArgumentException if the watchable requires input
-   * @deprecated use {@link #createRepeated(WatchableOptions, Watchable)} instead
-   */
-  @Deprecated
-  default  <OUT> RepeatableTaskWithoutInput<OUT> createRepeated(long timeoutInMilliseconds, boolean withStatistics, Watchable<OUT> watchable) {
-    WatchableOptions.Builder builder = WatchableOptions.builder(timeoutInMilliseconds);
-    if (withStatistics) {
-      builder.enableStatistics();
-    }
-    return createRepeated(builder.build(), watchable);
-  }
-
-  /**
-   * Submit the watchable to an executor service
+   * Submit the watchable for execution with default options
    *
    * @param timeoutInMilliseconds the timeout in milliseconds
    * @param watchable watchable the watchable to invoke
    * @return the future resulting from {@link ExecutorService#submit(java.util.concurrent.Callable)}}
-   * @deprecated use {@link #submitFunctionCall(WatchableOptions, Watchable)} instead
+   * @see #submitFunctionCall(WatchableOptions, Watchable) for more options
    */
-  @Deprecated
   default Future<?> submitFunctionCall(long timeoutInMilliseconds, Watchable<?> watchable) {
     return submitFunctionCall(WatchableOptions.builder(timeoutInMilliseconds).build(), watchable);
   }
 
   /**
-   * Call the watchable directly (blocking call)
+   * Call the watchable directly (blocking call) with default options
    *
    * @param timeoutInMilliseconds the timeout in milliseconds
    * @param watchable the watchable to invoke
    * @param <OUT> the output type
    * @return the task result
    * @throws InterruptedException if the thread gets interrupted
-   * @deprecated use {@link #waitForCompletion(WatchableOptions, Watchable)} instead
+   * @see #waitForCompletion(WatchableOptions, Watchable) for more options
    */
-  @Deprecated
   default  <OUT> TaskResult<OUT> waitForCompletion(long timeoutInMilliseconds, Watchable<OUT> watchable) throws InterruptedException {
     return waitForCompletion(WatchableOptions.builder(timeoutInMilliseconds).build(), watchable);
   }

@@ -1,2 +1,8 @@
+:url-tag: https://github.com/JanPollmann/Watchdog/blob/
+:url-deprecation-api-0-1-0: {url-tag}v0.1.0/Library/src/main/java/de/pollmann/watchdog/WatchdogFactoryExtension.java
+=== v0.1.0-dev
+* removed deprecated API from `WachdogFactory`
+** migration: see Javadoc of version v0.1.0: {url-deprecation-api-0-1-0}
+
 === v0.1.0
 * Introduced `WatchableOptions`, the old API is deprecated (see Javadoc)

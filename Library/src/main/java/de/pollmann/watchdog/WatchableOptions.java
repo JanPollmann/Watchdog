@@ -19,10 +19,20 @@ public class WatchableOptions {
     return monitoringEnabled;
   }
 
+  /**
+   * @param timeoutInMilliseconds the timeout of the watchable in milliseconds
+   * @return the {@link Builder} with default options
+   */
   public static Builder builder(long timeoutInMilliseconds) {
     return new Builder(timeoutInMilliseconds);
   }
 
+  /**
+   * Options: <br>
+   * <ul>
+   *   <li>Statistics (default disabled): see {@link de.pollmann.watchdog.util.statistics.Statistics} for more information. enable with {@link Builder#enableStatistics()}</li>
+   * </ul>
+   */
   public static class Builder {
     private final long timeoutInMilliseconds;
     private boolean monitoringEnabled = false;
@@ -36,6 +46,7 @@ public class WatchableOptions {
      *
      * @return the builder for chaining
      * @see de.pollmann.watchdog.util.statistics.Statistics for more information
+     * @see #disableStatistics() to disable the statistics (default)
      */
     public Builder enableStatistics() {
       monitoringEnabled = true;
@@ -46,6 +57,7 @@ public class WatchableOptions {
      * Disable statistics (default)
      *
      * @return the builder for chaining
+     * @see #enableStatistics() to enable the statistics
      */
     public Builder disableStatistics() {
       monitoringEnabled = false;
